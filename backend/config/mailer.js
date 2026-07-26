@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import https from 'https';
 
 dotenv.config();
 
@@ -34,18 +35,81 @@ if (isMailerConfigured) {
     });
   }
   console.log('Nodemailer SMTP Transporter configured.');
-} else {
+} else if (!process.env.RESEND_API_KEY) {
   console.warn(
-    'WARNING: SMTP email configurations (SMTP_HOST, SMTP_USER, SMTP_PASS) are missing. Fallback mode is active: OTP codes will be printed to the server console log for verification.'
+    'WARNING: SMTP email configurations (SMTP_HOST, SMTP_USER, SMTP_PASS) and RESEND_API_KEY are missing. Fallback mode is active: OTP codes will be printed to the server console log for verification.'
   );
 }
 
+// Helper function to send email via Resend's HTTPS API
+const sendEmailViaResend = async (to, subject, html) => {
+  const from = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  
+  if (typeof fetch !== 'undefined') {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ from, to, subject, html }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log(`Email successfully sent via Resend API to ${to}. ID: ${data.id}`);
+        return true;
+      }
+      console.error(`Resend API error:`, data);
+      return false;
+    } catch (error) {
+      console.error(`Failed to send email via Resend:`, error.message);
+      return false;
+    }
+  }
+
+  // Fallback to native https module if fetch is not globally defined in this Node.js runtime
+  return new Promise((resolve) => {
+    const postData = JSON.stringify({ from, to, subject, html });
+    const options = {
+      hostname: 'api.resend.com',
+      port: 443,
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`Email successfully sent via Resend API (https fallback) to ${to}.`);
+          resolve(true);
+        } else {
+          console.error(`Resend API error (https fallback): Status ${res.statusCode}, Body ${body}`);
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.error(`Failed to send email via Resend (https fallback):`, error.message);
+      resolve(false);
+    });
+
+    req.write(postData);
+    req.end();
+  });
+};
+
 export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
-  const mailOptions = {
-    from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
-    to: email,
-    subject: `VelocityWear - ${purpose} OTP Code`,
-    html: `
+  const subject = `VelocityWear - ${purpose} OTP Code`;
+  const htmlContent = `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
         <h2 style="color: #2563eb; text-align: center;">VelocityWear</h2>
         <p>Hello,</p>
@@ -59,7 +123,24 @@ export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
         <p style="color: #94a3b8; font-size: 12px; text-align: center;">If you did not request this code, please ignore this email.</p>
       </div>
-    `,
+    `;
+
+  if (process.env.RESEND_API_KEY) {
+    const success = await sendEmailViaResend(email, subject, htmlContent);
+    if (success) return true;
+    
+    // Log fallback if Resend fails in production
+    console.log(`\n======================================================`);
+    console.log(`[RESEND-FAILURE FALLBACK] OTP for ${email} (${purpose}) is: ${otp}`);
+    console.log(`======================================================\n`);
+    return false;
+  }
+
+  const mailOptions = {
+    from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
+    to: email,
+    subject: subject,
+    html: htmlContent,
   };
 
   if (transporter) {
@@ -96,11 +177,8 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
     }
   };
 
-  const mailOptions = {
-    from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
-    to: email,
-    subject: `VelocityWear - Order #${orderId.toString().substring(0, 10)} Update: ${getStatusLabel(status)}`,
-    html: `
+  const subject = `VelocityWear - Order #${orderId.toString().substring(0, 10)} Update: ${getStatusLabel(status)}`;
+  const htmlContent = `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
         <h2 style="color: #2563eb; text-align: center;">VelocityWear</h2>
         <p>Hello ${name},</p>
@@ -116,7 +194,24 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
         <p style="color: #94a3b8; font-size: 12px; text-align: center;">VelocityWear E-Commerce Team</p>
       </div>
-    `,
+    `;
+
+  if (process.env.RESEND_API_KEY) {
+    const success = await sendEmailViaResend(email, subject, htmlContent);
+    if (success) return true;
+    
+    console.log(`\n======================================================`);
+    console.log(`[RESEND-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
+    console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
+    console.log(`======================================================\n`);
+    return false;
+  }
+
+  const mailOptions = {
+    from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
+    to: email,
+    subject: subject,
+    html: htmlContent,
   };
 
   if (transporter) {
