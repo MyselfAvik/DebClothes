@@ -108,10 +108,10 @@ const sendEmailViaResend = async (to, subject, html) => {
 };
 
 export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
-  const subject = `VelocityWear - ${purpose} OTP Code`;
+  const subject = `Deb Clothes - ${purpose} OTP Code`;
   const htmlContent = `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-        <h2 style="color: #2563eb; text-align: center;">VelocityWear</h2>
+        <h2 style="color: #2563eb; text-align: center;">Deb Clothes</h2>
         <p>Hello,</p>
         <p>You requested a one-time password (OTP) for <strong>${purpose}</strong>.</p>
         <div style="text-align: center; margin: 30px 0;">
@@ -137,7 +137,7 @@ export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
   }
 
   const mailOptions = {
-    from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
+    from: `"Deb Clothes" <${process.env.SMTP_USER || 'noreply@debclothes.com'}>`,
     to: email,
     subject: subject,
     html: htmlContent,
@@ -235,10 +235,10 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
     }
   };
 
-  const subject = `VelocityWear - Order #${orderId.toString().substring(0, 10)} Update: ${getStatusLabel(status)}`;
+  const subject = `Deb Clothes - Order #${orderId.toString().substring(0, 10)} Update: ${getStatusLabel(status)}`;
   const htmlContent = `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-        <h2 style="color: #2563eb; text-align: center;">VelocityWear</h2>
+        <h2 style="color: #2563eb; text-align: center;">Deb Clothes</h2>
         <p>Hello ${name},</p>
         <p>Your order status has been updated. Details are as follows:</p>
         
@@ -250,7 +250,7 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
 
         <p style="color: #64748b; font-size: 14px;">You can track this order directly inside your account profile dashboard under "Order History".</p>
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-        <p style="color: #94a3b8; font-size: 12px; text-align: center;">VelocityWear E-Commerce Team</p>
+        <p style="color: #94a3b8; font-size: 12px; text-align: center;">Deb Clothes E-Commerce Team</p>
       </div>
     `;
 
@@ -268,7 +268,7 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
     }
 
     const mailOptions = {
-      from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
+      from: `"Deb Clothes" <${process.env.SMTP_USER || 'noreply@debclothes.com'}>`,
       to: email,
       subject: subject,
       html: htmlContent,
