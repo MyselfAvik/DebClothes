@@ -128,12 +128,7 @@ export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
   if (process.env.RESEND_API_KEY) {
     const success = await sendEmailViaResend(email, subject, htmlContent);
     if (success) return true;
-    
-    // Log fallback if Resend fails in production
-    console.log(`\n======================================================`);
-    console.log(`[RESEND-FAILURE FALLBACK] OTP for ${email} (${purpose}) is: ${otp}`);
-    console.log(`======================================================\n`);
-    return false;
+    console.warn(`[Mailer] Resend API failed. Attempting SMTP fallback...`);
   }
 
   const mailOptions = {
@@ -146,22 +141,18 @@ export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
   if (transporter) {
     try {
       await transporter.sendMail(mailOptions);
-      console.log(`OTP Email successfully sent to ${email} for ${purpose}.`);
+      console.log(`OTP Email successfully sent to ${email} for ${purpose} via SMTP.`);
       return true;
     } catch (error) {
-      console.error(`Failed to send email to ${email}:`, error.message);
-      // Even if SMTP fails, we'll log the OTP to the console so the developer isn't locked out.
-      console.log(`\n======================================================`);
-      console.log(`[SMTP-FAILURE FALLBACK] OTP for ${email} (${purpose}) is: ${otp}`);
-      console.log(`======================================================\n`);
-      return false;
+      console.error(`Failed to send OTP email to ${email} via SMTP:`, error.message);
     }
-  } else {
-    console.log(`\n======================================================`);
-    console.log(`[DEVELOPMENT ONLY] OTP for ${email} (${purpose}) is: ${otp}`);
-    console.log(`======================================================\n`);
-    return true;
   }
+
+  // Final fallback if both Resend and SMTP failed
+  console.log(`\n======================================================`);
+  console.log(`[MAILER FALLBACK] OTP for ${email} (${purpose}) is: ${otp}`);
+  console.log(`======================================================\n`);
+  return false;
 };
 // In-memory queue storage for background email jobs
 const emailQueue = [];
@@ -259,12 +250,7 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
     if (process.env.RESEND_API_KEY) {
       const success = await sendEmailViaResend(email, subject, htmlContent);
       if (success) return true;
-      
-      console.log(`\n======================================================`);
-      console.log(`[RESEND-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
-      console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
-      console.log(`======================================================\n`);
-      return false;
+      console.warn(`[Mailer Queue] Resend API failed. Attempting SMTP fallback...`);
     }
 
     const mailOptions = {
@@ -277,23 +263,19 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
     if (transporter) {
       try {
         await transporter.sendMail(mailOptions);
-        console.log(`Status email successfully sent to ${email} for Order #${orderId}.`);
+        console.log(`Status email successfully sent to ${email} for Order #${orderId} via SMTP.`);
         return true;
       } catch (error) {
-        console.error(`Failed to send status update email to ${email}:`, error.message);
-        console.log(`\n======================================================`);
-        console.log(`[SMTP-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
-        console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
-        console.log(`======================================================\n`);
-        return false;
+        console.error(`Failed to send status update email to ${email} via SMTP:`, error.message);
       }
-    } else {
-      console.log(`\n======================================================`);
-      console.log(`[DEVELOPMENT ONLY] Email Alert for ${email} regarding Order #${orderId}:`);
-      console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
-      console.log(`======================================================\n`);
-      return true;
     }
+
+    // Final fallback if both Resend and SMTP failed
+    console.log(`\n======================================================`);
+    console.log(`[MAILER FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
+    console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
+    console.log(`======================================================\n`);
+    return true; // Return true to mark job as handled/discarded
   });
 
   // Return true immediately to unblock the caller (controller)
