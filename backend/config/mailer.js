@@ -163,6 +163,64 @@ export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
     return true;
   }
 };
+// In-memory queue storage for background email jobs
+const emailQueue = [];
+let isProcessingQueue = false;
+
+// Process the email queue sequentially in the background
+const processQueue = async () => {
+  if (isProcessingQueue || emailQueue.length === 0) return;
+  isProcessingQueue = true;
+
+  while (emailQueue.length > 0) {
+    const job = emailQueue[0];
+    console.log(`[Email Queue] Processing job for ${job.email}. Jobs left in queue: ${emailQueue.length}`);
+    
+    let success = false;
+    try {
+      success = await job.handler();
+    } catch (error) {
+      console.error(`[Email Queue] Error during email handler execution:`, error.message);
+    }
+
+    if (success) {
+      console.log(`[Email Queue] Email sent successfully to ${job.email}.`);
+      emailQueue.shift(); // Remove the completed job
+    } else {
+      job.retries += 1;
+      if (job.retries >= 3) {
+        console.error(`[Email Queue] Job for ${job.email} failed after 3 attempts. Discarding job.`);
+        emailQueue.shift(); // Discard the job
+      } else {
+        console.warn(`[Email Queue] Job for ${job.email} failed. Will retry. (Attempt ${job.retries}/3)`);
+        // Shift from front, push to the back to avoid blocking other emails
+        const failedJob = emailQueue.shift();
+        emailQueue.push(failedJob);
+        // Wait 5 seconds before processing the next job to give the server / API a break
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+
+    // Add a small 1-second delay between processing subsequent jobs to prevent rate limiting
+    if (emailQueue.length > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  isProcessingQueue = false;
+};
+
+// Queue helper function
+export const queueEmail = (email, handler) => {
+  emailQueue.push({ email, handler, retries: 0 });
+  console.log(`[Email Queue] Queued new email for ${email}. Total queue size: ${emailQueue.length}`);
+  
+  // Kick off queue processing without awaiting
+  processQueue().catch(err => {
+    console.error(`[Email Queue] Background processor crashed:`, err.message);
+    isProcessingQueue = false; // reset flag in case of unhandled failure
+  });
+};
 
 export const sendStatusUpdateEmail = async (email, name, orderId, status, message = '') => {
   const getStatusLabel = (s) => {
@@ -196,44 +254,50 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
       </div>
     `;
 
-  if (process.env.RESEND_API_KEY) {
-    const success = await sendEmailViaResend(email, subject, htmlContent);
-    if (success) return true;
-    
-    console.log(`\n======================================================`);
-    console.log(`[RESEND-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
-    console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
-    console.log(`======================================================\n`);
-    return false;
-  }
-
-  const mailOptions = {
-    from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
-    to: email,
-    subject: subject,
-    html: htmlContent,
-  };
-
-  if (transporter) {
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`Status email successfully sent to ${email} for Order #${orderId}.`);
-      return true;
-    } catch (error) {
-      console.error(`Failed to send status update email to ${email}:`, error.message);
+  // Push the email sending execution to the background queue
+  queueEmail(email, async () => {
+    if (process.env.RESEND_API_KEY) {
+      const success = await sendEmailViaResend(email, subject, htmlContent);
+      if (success) return true;
+      
       console.log(`\n======================================================`);
-      console.log(`[SMTP-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
+      console.log(`[RESEND-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
       console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
       console.log(`======================================================\n`);
       return false;
     }
-  } else {
-    console.log(`\n======================================================`);
-    console.log(`[DEVELOPMENT ONLY] Email Alert for ${email} regarding Order #${orderId}:`);
-    console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
-    console.log(`======================================================\n`);
-    return true;
-  }
+
+    const mailOptions = {
+      from: `"VelocityWear" <${process.env.SMTP_USER || 'noreply@velocitywear.com'}>`,
+      to: email,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    if (transporter) {
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Status email successfully sent to ${email} for Order #${orderId}.`);
+        return true;
+      } catch (error) {
+        console.error(`Failed to send status update email to ${email}:`, error.message);
+        console.log(`\n======================================================`);
+        console.log(`[SMTP-FAILURE FALLBACK] Email Alert for ${email} regarding Order #${orderId}:`);
+        console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
+        console.log(`======================================================\n`);
+        return false;
+      }
+    } else {
+      console.log(`\n======================================================`);
+      console.log(`[DEVELOPMENT ONLY] Email Alert for ${email} regarding Order #${orderId}:`);
+      console.log(`New Status: ${getStatusLabel(status)} | Message: ${message}`);
+      console.log(`======================================================\n`);
+      return true;
+    }
+  });
+
+  // Return true immediately to unblock the caller (controller)
+  return true;
 };
 
 export default sendOtpEmail;
