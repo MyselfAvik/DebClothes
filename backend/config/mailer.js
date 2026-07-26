@@ -35,51 +35,64 @@ if (isMailerConfigured) {
     });
   }
   console.log('Nodemailer SMTP Transporter configured.');
-} else if (!process.env.RESEND_API_KEY) {
+} else if (!process.env.BREVO_API_KEY) {
   console.warn(
-    'WARNING: SMTP email configurations (SMTP_HOST, SMTP_USER, SMTP_PASS) and RESEND_API_KEY are missing. Fallback mode is active: OTP codes will be printed to the server console log for verification.'
+    'WARNING: SMTP email configurations (SMTP_HOST, SMTP_USER, SMTP_PASS) and BREVO_API_KEY are missing. Fallback mode is active: OTP codes will be printed to the server console log for verification.'
   );
 }
 
-// Helper function to send email via Resend's HTTPS API
-const sendEmailViaResend = async (to, subject, html) => {
-  const from = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+// Helper function to send email via Brevo's HTTPS API
+const sendEmailViaBrevo = async (to, subject, html) => {
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'debclothes.official@gmail.com';
+  const senderName = 'Deb Clothes';
   
   if (typeof fetch !== 'undefined') {
     try {
-      const response = await fetch('https://api.resend.com/emails', {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
+          'accept': 'application/json',
+          'api-key': process.env.BREVO_API_KEY,
+          'content-type': 'application/json',
         },
-        body: JSON.stringify({ from, to, subject, html }),
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html,
+        }),
       });
       const data = await response.json();
       if (response.ok) {
-        console.log(`Email successfully sent via Resend API to ${to}. ID: ${data.id}`);
+        console.log(`Email successfully sent via Brevo API to ${to}. MessageID: ${data.messageId}`);
         return true;
       }
-      console.error(`Resend API error:`, data);
+      console.error(`Brevo API error:`, data);
       return false;
     } catch (error) {
-      console.error(`Failed to send email via Resend:`, error.message);
+      console.error(`Failed to send email via Brevo:`, error.message);
       return false;
     }
   }
 
   // Fallback to native https module if fetch is not globally defined in this Node.js runtime
   return new Promise((resolve) => {
-    const postData = JSON.stringify({ from, to, subject, html });
+    const postData = JSON.stringify({
+      sender: { name: senderName, email: senderEmail },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html,
+    });
     const options = {
-      hostname: 'api.resend.com',
+      hostname: 'api.brevo.com',
       port: 443,
-      path: '/emails',
+      path: '/v3/smtp/email',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData),
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(postData),
       },
     };
 
@@ -88,17 +101,17 @@ const sendEmailViaResend = async (to, subject, html) => {
       res.on('data', (chunk) => body += chunk);
       res.on('end', () => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          console.log(`Email successfully sent via Resend API (https fallback) to ${to}.`);
+          console.log(`Email successfully sent via Brevo API (https fallback) to ${to}.`);
           resolve(true);
         } else {
-          console.error(`Resend API error (https fallback): Status ${res.statusCode}, Body ${body}`);
+          console.error(`Brevo API error (https fallback): Status ${res.statusCode}, Body ${body}`);
           resolve(false);
         }
       });
     });
 
     req.on('error', (error) => {
-      console.error(`Failed to send email via Resend (https fallback):`, error.message);
+      console.error(`Failed to send email via Brevo (https fallback):`, error.message);
       resolve(false);
     });
 
@@ -125,10 +138,10 @@ export const sendOtpEmail = async (email, otp, purpose = 'Verification') => {
       </div>
     `;
 
-  if (process.env.RESEND_API_KEY) {
-    const success = await sendEmailViaResend(email, subject, htmlContent);
+  if (process.env.BREVO_API_KEY) {
+    const success = await sendEmailViaBrevo(email, subject, htmlContent);
     if (success) return true;
-    console.warn(`[Mailer] Resend API failed. Attempting SMTP fallback...`);
+    console.warn(`[Mailer] Brevo API failed. Attempting SMTP fallback...`);
   }
 
   const mailOptions = {
@@ -247,10 +260,10 @@ export const sendStatusUpdateEmail = async (email, name, orderId, status, messag
 
   // Push the email sending execution to the background queue
   queueEmail(email, async () => {
-    if (process.env.RESEND_API_KEY) {
-      const success = await sendEmailViaResend(email, subject, htmlContent);
+    if (process.env.BREVO_API_KEY) {
+      const success = await sendEmailViaBrevo(email, subject, htmlContent);
       if (success) return true;
-      console.warn(`[Mailer Queue] Resend API failed. Attempting SMTP fallback...`);
+      console.warn(`[Mailer Queue] Brevo API failed. Attempting SMTP fallback...`);
     }
 
     const mailOptions = {
