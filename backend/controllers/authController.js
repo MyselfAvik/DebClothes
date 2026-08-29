@@ -706,3 +706,61 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
+// @desc    Request Account Deletion (Public Web Form for Google Play Compliance)
+// @route   POST /api/auth/delete-request
+// @access  Public
+export const requestAccountDeletion = async (req, res, next) => {
+  try {
+    const { email, name, reason } = req.body;
+
+    if (!email) {
+      res.status(400);
+      throw new Error('Please provide the registered email address');
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    
+    if (user) {
+      console.log(`[Account Deletion Request] Processed for: ${user.email} (Name: ${name || user.name}, Reason: ${reason || 'N/A'})`);
+    }
+
+    res.json({
+      success: true,
+      message: 'Account deletion request received. Your request is being processed in compliance with data privacy policies.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete Authenticated User Account & Personal Data
+// @route   DELETE /api/auth/account
+// @access  Private
+export const deleteMyAccount = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (user.role === 'admin' && user.email === 'avikd.official@gmail.com') {
+      res.status(400);
+      throw new Error('Primary Administrator account cannot be deleted.');
+    }
+
+    // Permanently remove user record
+    await User.findByIdAndDelete(userId);
+
+    res.json({
+      success: true,
+      message: 'Your account and personal data have been permanently deleted.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+

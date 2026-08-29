@@ -1,24 +1,37 @@
 import React, { useState } from 'react';
-import { Trash2, AlertTriangle, ShieldCheck, CheckCircle2, Mail, ArrowLeft, Clock, FileText, User } from 'lucide-react';
+import { Trash2, AlertTriangle, ShieldCheck, CheckCircle2, Mail, ArrowLeft, Clock, FileText, User, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import API from '../api/axios';
 
 const DeleteAccount = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       toast.error('Please provide a valid registered email address');
       return;
     }
 
-    // Confirmation
-    setSubmitted(true);
-    toast.success('Your account deletion request has been registered.');
+    setLoading(true);
+    try {
+      await API.post('/api/auth/delete-request', {
+        email: email.trim(),
+        name: name.trim(),
+        reason: reason.trim(),
+      });
+      setSubmitted(true);
+      toast.success('Your account deletion request has been registered.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit deletion request. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,10 +174,20 @@ const DeleteAccount = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-6 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm tracking-wide transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="w-full py-3.5 px-6 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold text-sm tracking-wide transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Submit Account & Data Deletion Request
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing Request...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Submit Account & Data Deletion Request
+                    </>
+                  )}
                 </button>
               </form>
             )}

@@ -16,6 +16,8 @@ import {
   getAllUsers,
   updateUserRole,
   googleLogin,
+  requestAccountDeletion,
+  deleteMyAccount,
 } from '../controllers/authController.js';
 import { verifyToken, isAdmin } from '../middleware/auth.js';
 
@@ -31,6 +33,10 @@ router.post('/resend-otp', resendOtp);
 router.get('/me', verifyToken, getMe);
 router.get('/users', verifyToken, isAdmin, getAllUsers);
 router.put('/users/:id/role', verifyToken, isAdmin, updateUserRole);
+
+// Account & Data Deletion Routes (Google Play & Privacy Compliance)
+router.post('/delete-request', requestAccountDeletion);
+router.delete('/account', verifyToken, deleteMyAccount);
 
 // Address Management Routes
 router.post('/addresses', verifyToken, addAddress);
