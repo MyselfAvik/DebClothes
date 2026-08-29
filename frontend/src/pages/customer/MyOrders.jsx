@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../../api/axios';
-import { Package, Calendar, Clock, MapPin, CheckCircle, AlertCircle, RefreshCw, Truck, Star, X, Camera, Download, RotateCcw } from 'lucide-react';
+import { Package, Calendar, Clock, MapPin, CheckCircle, AlertCircle, RefreshCw, Truck, Star, X, Camera, Download, RotateCcw, Search, Smartphone, Building2, CreditCard, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeOrderTab, setActiveOrderTab] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Review states
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -380,7 +382,9 @@ const MyOrders = () => {
     fetchOrders();
   }, []);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (orderOrStatus) => {
+    const status = typeof orderOrStatus === 'string' ? orderOrStatus : orderOrStatus?.orderStatus;
+    const order = typeof orderOrStatus === 'object' ? orderOrStatus : null;
     switch (status) {
       case 'placed':
         return (
@@ -449,6 +453,20 @@ const MyOrders = () => {
           </span>
         );
       case 'cancelled':
+        if (order?.paymentStatus === 'refund_pending') {
+          return (
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              Cancelled (Refund Pending)
+            </span>
+          );
+        }
+        if (order?.paymentStatus === 'refunded') {
+          return (
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              Cancelled & Refunded
+            </span>
+          );
+        }
         return (
           <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-500 border border-red-500/20">
             Cancelled
@@ -457,7 +475,7 @@ const MyOrders = () => {
       default:
         return (
           <span className="rounded-full bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-500 border border-slate-500/20">
-            {status}
+            {typeof order === 'string' ? order : order?.orderStatus}
           </span>
         );
     }
@@ -582,11 +600,89 @@ const MyOrders = () => {
     );
   }
 
+  const filteredOrders = orders.filter((order) => {
+    if (activeOrderTab === 'REFUND_PENDING') {
+      const isPending = order.paymentStatus === 'refund_pending' || ['return_requested', 'return_approved', 'out_for_pickup', 'returning_to_seller'].includes(order.orderStatus);
+      if (!isPending) return false;
+    } else if (activeOrderTab === 'IN_TRANSIT') {
+      if (!['placed', 'confirmed', 'shipped', 'out_for_delivery'].includes(order.orderStatus)) return false;
+    } else if (activeOrderTab === 'DELIVERED') {
+      if (order.orderStatus !== 'delivered') return false;
+    } else if (activeOrderTab === 'CANCELLED_RETURNED') {
+      if (!['cancelled', 'return_requested', 'return_approved', 'out_for_pickup', 'returning_to_seller', 'returned', 'return_rejected'].includes(order.orderStatus)) return false;
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const idMatch = order._id?.toLowerCase().includes(q);
+      const itemMatch = order.items?.some((it) => it.product?.title?.toLowerCase().includes(q));
+      return idMatch || itemMatch;
+    }
+    return true;
+  });
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Order History</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track shipping details and delivery status</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track shipping details, delivery status & refund processing</p>
+      </div>
+
+      {/* Search & Filter Tabs */}
+      <div className="mb-6 space-y-3.5">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by Order ID or Product name..."
+            className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Tab Pills */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: 'ALL', label: 'All Orders' },
+            { 
+              id: 'REFUND_PENDING', 
+              label: 'Refund Pending', 
+              count: orders.filter(o => o.paymentStatus === 'refund_pending' || ['return_requested', 'return_approved', 'out_for_pickup', 'returning_to_seller'].includes(o.orderStatus)).length 
+            },
+            { id: 'IN_TRANSIT', label: 'On The Way' },
+            { id: 'DELIVERED', label: 'Delivered' },
+            { id: 'CANCELLED_RETURNED', label: 'Cancelled & Returns' },
+          ].map((tab) => {
+            const isActive = activeOrderTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveOrderTab(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${isActive ? 'bg-white/20 text-white' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'}`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {error && (
@@ -605,9 +701,15 @@ const MyOrders = () => {
             Browse Shop
           </Link>
         </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+          <RotateCcw className="h-12 w-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">No orders found</h3>
+          <p className="text-sm text-slate-500">No orders match the selected filter or search query.</p>
+        </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order) => {
+          {filteredOrders.map((order) => {
             const statusAccentColor = 
               order.orderStatus === 'delivered' ? 'border-t-emerald-500' :
               order.orderStatus.includes('return') ? 'border-t-amber-500' :
@@ -701,7 +803,7 @@ const MyOrders = () => {
                     <Download className="h-4 w-4 text-blue-500" />
                     <span className="text-xs font-semibold">Invoice</span>
                   </button>
-                  {getStatusBadge(order.orderStatus)}
+                  {getStatusBadge(order)}
                 </div>
               </div>
 
@@ -841,47 +943,112 @@ const MyOrders = () => {
                   </div>
                 )}
 
-                {/* Cancellation Details Section if cancelled online */}
-                {order.orderStatus === 'cancelled' && order.cancellationDetails && order.cancellationDetails.refundMethod !== 'none' && (
+                {/* Dedicated Refund Pending Details Section */}
+                {order.paymentStatus === 'refund_pending' && (
                   <div className="border-t border-slate-150 dark:border-slate-800 pt-4">
-                    <div className="rounded-xl border border-red-500/30 bg-red-50/50 dark:bg-red-950/20 p-4 space-y-3">
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/20 p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1.5">
-                          <X className="h-4 w-4" />
-                          Cancellation & Refund Destination
-                        </span>
-                        <span className="text-[11px] font-bold text-slate-500">
-                          Refund: ₹{order.totalAmount}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-amber-500 animate-pulse" />
+                          <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                            Refund Pending: ₹{order.totalAmount}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          Seller Processing Payout
                         </span>
                       </div>
 
-                      {order.cancellationDetails.reason && (
-                        <div className="text-xs text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-lg border border-red-500/20">
-                          <span className="font-semibold text-slate-500 block mb-0.5">Cancellation Reason:</span>
-                          <p>{order.cancellationDetails.reason}</p>
+                      {/* Product Details Box */}
+                      <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-lg border border-amber-500/20 space-y-2">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                          Refund Item(s):
+                        </span>
+                        <div className="space-y-2">
+                          {order.items.map((item, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                              <img
+                                src={getImageUrl(item.product?.images?.[0])}
+                                alt={item.product?.title || 'Product'}
+                                className="h-11 w-11 object-cover rounded-md border border-slate-200 dark:border-slate-800"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                                  {item.product?.title}
+                                </h4>
+                                <p className="text-[11px] text-slate-500">
+                                  Size: <span className="font-semibold text-slate-700 dark:text-slate-300">{item.size}</span> • Qty: <span className="font-semibold text-slate-700 dark:text-slate-300">{item.qty}</span> • ₹{item.priceAtPurchase || item.price}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      )}
+                      </div>
 
-                      <div className="text-xs bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-lg border border-red-500/20 space-y-1">
-                        <span className="font-semibold text-slate-500 block">Payout Destination:</span>
-                        {order.cancellationDetails.refundMethod === 'upi' ? (
-                          <p className="font-bold text-blue-600 dark:text-blue-400">
-                            UPI ID: {order.cancellationDetails.upiId}
-                          </p>
-                        ) : order.cancellationDetails.bankDetails ? (
-                          <div>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">
-                              Bank: {order.cancellationDetails.bankDetails.bankName || 'Bank Transfer'}
+                      {/* Refund Destination Details */}
+                      <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-lg border border-amber-500/20 space-y-1 text-xs">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                          Payout Credit Destination:
+                        </span>
+                        {(order.cancellationDetails?.refundMethod === 'upi' || order.returnDetails?.refundMethod === 'upi') ? (
+                          <div className="flex items-center gap-1.5 font-bold text-blue-600 dark:text-blue-400">
+                            <Smartphone className="h-3.5 w-3.5" />
+                            <span>UPI ID: {order.cancellationDetails?.upiId || order.returnDetails?.upiId}</span>
+                          </div>
+                        ) : (order.cancellationDetails?.bankDetails?.accountNumber || order.returnDetails?.bankDetails?.accountNumber) ? (
+                          <div className="space-y-0.5 text-slate-600 dark:text-slate-400">
+                            <p className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                              <Building2 className="h-3.5 w-3.5 text-slate-500" />
+                              Bank: {order.cancellationDetails?.bankDetails?.bankName || order.returnDetails?.bankDetails?.bankName || 'Bank Transfer'}
                             </p>
-                            <p className="text-slate-500">
-                              A/C: ****{order.cancellationDetails.bankDetails.accountNumber?.slice(-4)} ({order.cancellationDetails.bankDetails.accountHolderName})
+                            <p className="pl-5">
+                              A/C: ****{(order.cancellationDetails?.bankDetails?.accountNumber || order.returnDetails?.bankDetails?.accountNumber)?.slice(-4)} ({order.cancellationDetails?.bankDetails?.accountHolderName || order.returnDetails?.bankDetails?.accountHolderName})
                             </p>
-                            <p className="text-slate-500">
-                              IFSC: {order.cancellationDetails.bankDetails.ifscCode}
+                            <p className="pl-5 text-slate-500">
+                              IFSC: {order.cancellationDetails?.bankDetails?.ifscCode || order.returnDetails?.bankDetails?.ifscCode}
                             </p>
                           </div>
                         ) : null}
+
+                        {order.cancellationDetails?.reason && (
+                          <p className="text-slate-500 pt-1.5 border-t border-slate-200/50 dark:border-slate-800/50 mt-1">
+                            Cancellation Reason: <span className="font-medium text-slate-700 dark:text-slate-300">{order.cancellationDetails.reason}</span>
+                          </p>
+                        )}
+                        {order.returnDetails?.reason && (
+                          <p className="text-slate-500 pt-1.5 border-t border-slate-200/50 dark:border-slate-800/50 mt-1">
+                            Return Reason: <span className="font-medium text-slate-700 dark:text-slate-300">{order.returnDetails.reason}</span>
+                          </p>
+                        )}
                       </div>
+
+                      <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 italic">
+                        ℹ️ Seller is processing this refund transfer. Amount will be credited to this destination within 24-48 business hours.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Completed Cancellation Details Section */}
+                {order.orderStatus === 'cancelled' && order.paymentStatus === 'refunded' && order.cancellationDetails && order.cancellationDetails.refundMethod !== 'none' && (
+                  <div className="border-t border-slate-150 dark:border-slate-800 pt-4">
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                          <CheckCircle className="h-4 w-4" />
+                          Refund Completed & Paid
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          Refunded: ₹{order.totalAmount}
+                        </span>
+                      </div>
+
+                      {order.cancellationDetails.adminComment && (
+                        <div className="text-xs text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-lg border border-emerald-500/20">
+                          <span className="font-semibold text-slate-500 block mb-0.5">Admin Note:</span>
+                          <p>{order.cancellationDetails.adminComment}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

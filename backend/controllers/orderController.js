@@ -616,7 +616,7 @@ export const cancelMyOrder = async (req, res, next) => {
 
     let refundSummary = '';
     if (isOnlinePaid) {
-      order.paymentStatus = 'refunded';
+      order.paymentStatus = 'refund_pending';
       order.cancellationDetails = {
         reason: (reason || 'Order cancelled by customer before shipment').trim(),
         requestedAt: new Date(),
@@ -637,19 +637,8 @@ export const cancelMyOrder = async (req, res, next) => {
       };
 
       refundSummary = refundMethod === 'upi'
-        ? `Refund destination: UPI (${upiId.trim()})`
-        : `Refund destination: Bank A/C ${accountNumber.trim().slice(-4)} (${bankName || 'Bank'})`;
-
-      // Also attempt gateway refund if Razorpay payment ID exists
-      if (order.paymentId && order.paymentId.startsWith('pay_')) {
-        try {
-          await razorpayInstance.payments.refund(order.paymentId, {
-            amount: Math.round(order.totalAmount * 100),
-          });
-        } catch (err) {
-          console.log('Razorpay Refund webhook note during customer cancel:', err.message);
-        }
-      }
+        ? `Refund Pending to UPI (${upiId.trim()})`
+        : `Refund Pending to Bank A/C ${accountNumber.trim().slice(-4)} (${bankName || 'Bank'})`;
     } else {
       order.paymentStatus = 'failed';
       order.cancellationDetails = {
@@ -677,8 +666,69 @@ export const cancelMyOrder = async (req, res, next) => {
     const updatedOrder = await order.save();
     res.json({
       message: isOnlinePaid
-        ? `Order cancelled successfully. Refund of ₹${order.totalAmount} will be processed to your submitted ${refundMethod.toUpperCase()} details.`
+        ? `Order cancelled. Refund request of ₹${order.totalAmount} is pending and will be paid to your submitted ${refundMethod.toUpperCase()} details.`
         : 'Order cancelled successfully and inventory restored',
+      order: updatedOrder,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Process/Confirm Refund for an order (Admin only)
+// @route   PUT /api/orders/:id/refund
+// @access  Private (Admin)
+export const processAdminRefund = async (req, res, next) => {
+  try {
+    const { paymentStatus = 'refunded', adminComment, transactionReference } = req.body;
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
+
+    if (!order) {
+      res.status(404);
+      throw new Error('Order not found');
+    }
+
+    order.paymentStatus = paymentStatus;
+
+    const noteText = [
+      transactionReference ? `Txn Ref/UTR: ${transactionReference.trim()}` : '',
+      adminComment ? `Note: ${adminComment.trim()}` : '',
+    ].filter(Boolean).join(' | ');
+
+    if (order.cancellationDetails) {
+      order.cancellationDetails.adminComment = noteText || order.cancellationDetails.adminComment || 'Refund processed by Admin';
+    }
+    if (order.returnDetails) {
+      order.returnDetails.adminComment = noteText || order.returnDetails.adminComment || 'Refund processed by Admin';
+    }
+
+    const logMessage = `Refund of ₹${order.totalAmount} marked as ${paymentStatus.toUpperCase()} by Admin.${noteText ? ' (' + noteText + ')' : ''}`;
+
+    order.statusHistory.push({
+      status: order.orderStatus,
+      message: logMessage,
+    });
+
+    const updatedOrder = await order.save();
+
+    // Send email notification to user if available
+    if (order.user && order.user.email) {
+      try {
+        await sendStatusUpdateEmail(
+          order.user.email,
+          order.user.name,
+          order._id,
+          order.orderStatus,
+          `Your refund of ₹${order.totalAmount} has been processed successfully.${noteText ? ' Details: ' + noteText : ''}`
+        );
+      } catch (mailErr) {
+        console.log('Refund confirmation email error:', mailErr.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Refund of ₹${order.totalAmount} marked as ${paymentStatus.toUpperCase()} successfully`,
       order: updatedOrder,
     });
   } catch (error) {
