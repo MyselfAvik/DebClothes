@@ -906,13 +906,13 @@ const styles = StyleSheet.create({
   profileNameText: {
     color: '#ffffff',
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   profileMetaEmail: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 12.5,
     marginLeft: 6,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   infoPillsRow: {
     flexDirection: 'row',
@@ -934,7 +934,7 @@ const styles = StyleSheet.create({
   infoPillText: {
     color: '#ffffff',
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   avatar: {
     width: 72,
@@ -947,11 +947,11 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#fff',
     fontSize: 32,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   name: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   metaRow: {
     flexDirection: 'row',
@@ -960,6 +960,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 14,
+    fontFamily: 'Outfit_500Medium',
     marginLeft: 6,
   },
   roleBadge: {
@@ -972,7 +973,7 @@ const styles = StyleSheet.create({
   },
   roleText: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_800ExtraBold',
     marginLeft: 4,
   },
   settingsCard: {
@@ -983,7 +984,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginBottom: 12,
   },
   settingRow: {
@@ -1007,16 +1008,17 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 14.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 12,
   },
   settingSubLabel: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   settingValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   addressBookHeader: {
     flexDirection: 'row',
@@ -1030,7 +1032,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 4,
   },
   addressItem: {

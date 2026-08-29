@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 16,
     flex: 1,
   },
@@ -543,13 +543,13 @@ const styles = StyleSheet.create({
   },
   category: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 1,
     marginBottom: 4,
   },
   name: {
     fontSize: 22,
-    fontWeight: '900',
+    fontFamily: 'Outfit_800ExtraBold',
     lineHeight: 28,
   },
   row: {
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 24,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   ratingBox: {
     flexDirection: 'row',
@@ -568,17 +568,18 @@ const styles = StyleSheet.create({
   },
   ratingVal: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 4,
   },
   sectionHeading: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginTop: 16,
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
     lineHeight: 20,
   },
   sizeRow: {
@@ -597,7 +598,7 @@ const styles = StyleSheet.create({
   },
   sizeText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
   },
   qtyRow: {
     flexDirection: 'row',
@@ -617,7 +618,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
   },
   divider: {
     borderBottomWidth: 1,
@@ -636,10 +637,11 @@ const styles = StyleSheet.create({
   },
   reviewUser: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   reviewComment: {
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     lineHeight: 18,
   },
   noReviews: {

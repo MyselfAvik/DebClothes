@@ -477,13 +477,13 @@ const styles = StyleSheet.create({
   },
   brandTitle: {
     fontSize: 26,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 2.5,
     textAlign: 'center',
   },
   brandTagline: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     letterSpacing: 1.5,
     marginTop: 4,
     textAlign: 'center',
@@ -520,13 +520,14 @@ const styles = StyleSheet.create({
   },
   tabSegmentText: {
     fontSize: 12.5,
+    fontFamily: 'Outfit_700Bold',
   },
   fieldBlock: {
     marginBottom: 14,
   },
   fieldLabel: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 0.8,
     marginBottom: 6,
     marginLeft: 2,
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 13.5,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   eyeBtn: {
     padding: 6,
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 0.5,
   },
   orDividerRow: {
@@ -583,7 +584,7 @@ const styles = StyleSheet.create({
   orText: {
     marginHorizontal: 10,
     fontSize: 10.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 1,
   },
   googleBtn: {
@@ -603,7 +604,7 @@ const styles = StyleSheet.create({
   },
   googleBtnText: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 10,
   },
   footerRow: {
@@ -614,9 +615,10 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
   linkText: {
     fontSize: 13,
+    fontFamily: 'Outfit_800ExtraBold',
   },
 });

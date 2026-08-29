@@ -30,11 +30,14 @@ export const promptGoogleOAuthAsync = async () => {
       console.log('Using default Google client ID:', DEFAULT_CLIENT_ID);
     }
 
-    // Official Expo Auth Proxy URI matching Google Cloud Console credentials
-    const redirectUri = 'https://auth.expo.io/@avikdangar/mobile';
+    // Use AuthSession.makeRedirectUri with project scheme
+    const redirectUri = AuthSession.makeRedirectUri({
+      scheme: 'debclothes',
+      preferLocalhost: false,
+    });
     console.log('[Google OAuth] Using Redirect URI:', redirectUri);
 
-    // Create Authorization Code request with PKCE (standard for Google OAuth)
+    // Create Authorization Code request with PKCE
     const request = new AuthSession.AuthRequest({
       clientId,
       scopes: ['openid', 'profile', 'email'],
@@ -46,7 +49,7 @@ export const promptGoogleOAuthAsync = async () => {
       },
     });
 
-    const result = await request.promptAsync(discovery, { useProxy: true });
+    const result = await request.promptAsync(discovery);
 
     if (result.type === 'success' && result.params?.code) {
       // Exchange Authorization Code for Access / ID Token using PKCE
