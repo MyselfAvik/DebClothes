@@ -31,9 +31,10 @@ export const promptGoogleOAuthAsync = async () => {
       console.log('Using default Google client ID:', DEFAULT_CLIENT_ID);
     }
 
-    // 2. Generate redirect URI for Expo / Standalone app
+    // 2. Generate redirect URI matching Google Cloud Console authorized URIs
     const redirectUri = AuthSession.makeRedirectUri({
       scheme: 'debclothes',
+      useProxy: true,
       preferLocalhost: false,
     });
     console.log('[Google OAuth] Generated Redirect URI:', redirectUri);
