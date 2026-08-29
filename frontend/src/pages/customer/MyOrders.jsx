@@ -27,6 +27,15 @@ const MyOrders = () => {
   const [returnReasonDetails, setReturnReasonDetails] = useState('');
   const [returnPhotos, setReturnPhotos] = useState([]);
   const [returnLoading, setReturnLoading] = useState(false);
+  const [returnError, setReturnError] = useState('');
+  const [returnRefundMethod, setReturnRefundMethod] = useState('upi'); // 'upi' | 'bank_transfer'
+  const [returnUpiId, setReturnUpiId] = useState('');
+  const [returnAccountHolder, setReturnAccountHolder] = useState('');
+  const [returnBankName, setReturnBankName] = useState('');
+  const [returnAccountNumber, setReturnAccountNumber] = useState('');
+  const [returnConfirmAccount, setReturnConfirmAccount] = useState('');
+  const [returnIfsc, setReturnIfsc] = useState('');
+
   // Lightbox & Cancel states
   const [lightboxImage, setLightboxImage] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
@@ -125,24 +134,69 @@ const MyOrders = () => {
     setReturnReasonDetails('');
     setReturnPhotos([]);
     setReturnError('');
+    setReturnRefundMethod('upi');
+    setReturnUpiId('');
+    setReturnAccountHolder('');
+    setReturnBankName('');
+    setReturnAccountNumber('');
+    setReturnConfirmAccount('');
+    setReturnIfsc('');
     setShowReturnModal(true);
   };
 
   const handleReturnSubmit = async (e) => {
     e.preventDefault();
-    setReturnLoading(true);
     setReturnError('');
 
     if (!returnPhotos || returnPhotos.length === 0) {
       toast.error('Please upload at least one photo of the product as proof');
-      setReturnLoading(false);
       return;
     }
+
+    if (returnRefundMethod === 'upi') {
+      if (!returnUpiId.trim() || !returnUpiId.includes('@')) {
+        toast.error('Please enter a valid UPI ID (e.g. yourname@oksbi / user@upi) for refund payout');
+        return;
+      }
+    } else {
+      if (!returnAccountHolder.trim()) {
+        toast.error('Please enter the Account Holder Name');
+        return;
+      }
+      if (!returnBankName.trim()) {
+        toast.error('Please enter the Bank Name');
+        return;
+      }
+      if (!returnAccountNumber.trim() || returnAccountNumber.trim().length < 6) {
+        toast.error('Please enter a valid Bank Account Number');
+        return;
+      }
+      if (returnAccountNumber.trim() !== returnConfirmAccount.trim()) {
+        toast.error('Account Number and Confirm Account Number do not match');
+        return;
+      }
+      if (!returnIfsc.trim() || returnIfsc.trim().length < 6) {
+        toast.error('Please enter a valid IFSC Code');
+        return;
+      }
+    }
+
+    setReturnLoading(true);
 
     const fullReason = `${returnReasonPreset}${returnReasonDetails.trim() ? `: ${returnReasonDetails.trim()}` : ''}`;
 
     const formData = new FormData();
     formData.append('reason', fullReason);
+    formData.append('refundMethod', returnRefundMethod);
+    if (returnRefundMethod === 'upi') {
+      formData.append('upiId', returnUpiId.trim());
+    } else {
+      formData.append('accountHolderName', returnAccountHolder.trim());
+      formData.append('bankName', returnBankName.trim());
+      formData.append('accountNumber', returnAccountNumber.trim());
+      formData.append('ifscCode', returnIfsc.trim().toUpperCase());
+    }
+
     for (let i = 0; i < returnPhotos.length; i++) {
       formData.append('images', returnPhotos[i]);
     }
@@ -154,7 +208,7 @@ const MyOrders = () => {
         },
       });
 
-      toast.success('Return request submitted! Admin will review your request.');
+      toast.success('Return request with refund details submitted! Admin will review your request.');
       setShowReturnModal(false);
       fetchOrders();
     } catch (err) {
@@ -1294,6 +1348,138 @@ const MyOrders = () => {
                   />
                   <p className="text-[10px] text-slate-450">Clear photos of the product and defect help accelerate return approval.</p>
                 </div>
+              </div>
+
+              {/* Refund Destination Form for Return Orders */}
+              <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div className="rounded-xl bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400 border border-amber-500/20 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <CreditCard className="h-4 w-4 text-amber-500" />
+                    <span>Refund Payout Details (₹{selectedReturnOrder.totalAmount})</span>
+                  </div>
+                  <p className="text-[11px] opacity-90 text-slate-600 dark:text-slate-300">
+                    Once the returned product is collected and inspected, your refund will be transferred to this destination.
+                  </p>
+                </div>
+
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Select Refund Payout Method *
+                </label>
+
+                {/* Mode selector */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReturnRefundMethod('upi')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                      returnRefundMethod === 'upi'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-500/20'
+                        : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    UPI ID (Fastest)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReturnRefundMethod('bank_transfer')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                      returnRefundMethod === 'bank_transfer'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-500/20'
+                        : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    Bank Account
+                  </button>
+                </div>
+
+                {returnRefundMethod === 'upi' ? (
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      UPI ID / VPA *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. mobile@upi or username@oksbi"
+                      value={returnUpiId}
+                      onChange={(e) => setReturnUpiId(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-amber-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Account Holder Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Name as per Bank records"
+                        value={returnAccountHolder}
+                        onChange={(e) => setReturnAccountHolder(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Bank Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. State Bank of India / HDFC Bank"
+                        value={returnBankName}
+                        onChange={(e) => setReturnBankName(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Account Number *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Account Number"
+                          value={returnAccountNumber}
+                          onChange={(e) => setReturnAccountNumber(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Confirm A/C Number *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Confirm Account"
+                          value={returnConfirmAccount}
+                          onChange={(e) => setReturnConfirmAccount(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        IFSC Code *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. SBIN0001234"
+                        value={returnIfsc}
+                        onChange={(e) => setReturnIfsc(e.target.value.toUpperCase())}
+                        className="w-full uppercase rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-amber-500"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-3">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../api/axios';
-import { Package, MapPin, User, Save, CheckCircle, RefreshCw, AlertCircle, ShoppingBag, MessageSquare, Truck, RotateCcw, Check, X, ShieldAlert, Sparkles, Filter } from 'lucide-react';
+import { Package, MapPin, User, Save, CheckCircle, RefreshCw, AlertCircle, ShoppingBag, MessageSquare, Truck, RotateCcw, Check, X, ShieldAlert, Sparkles, Filter, CreditCard, Smartphone, Building2, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ManageOrders = () => {
@@ -18,6 +18,12 @@ const ManageOrders = () => {
   const [selectedFilter, setSelectedFilter] = useState('needs_action');
   const [lightboxImage, setLightboxImage] = useState(null);
 
+  // Refund Confirmation Modal States
+  const [refundModalOrder, setRefundModalOrder] = useState(null);
+  const [refundTxnRef, setRefundTxnRef] = useState('');
+  const [refundAdminNote, setRefundAdminNote] = useState('');
+  const [submittingRefund, setSubmittingRefund] = useState(false);
+
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=100';
     if (imagePath.startsWith('http')) return imagePath;
@@ -26,7 +32,11 @@ const ManageOrders = () => {
 
   const filteredOrders = orders.filter((order) => {
     if (selectedFilter === 'needs_action') {
-      if (order.orderStatus !== 'placed' && order.orderStatus !== 'return_requested') return false;
+      const isPending = order.orderStatus === 'placed' || order.orderStatus === 'return_requested' || order.paymentStatus === 'refund_pending';
+      if (!isPending) return false;
+    } else if (selectedFilter === 'refund_pending') {
+      const isPending = order.paymentStatus === 'refund_pending' || (order.orderStatus === 'cancelled' && order.cancellationDetails?.refundMethod && order.cancellationDetails.refundMethod !== 'none') || order.orderStatus === 'return_requested' || order.paymentStatus === 'refunded';
+      if (!isPending) return false;
     } else if (selectedFilter === 'in_fulfillment') {
       if (!['confirmed', 'shipped', 'out_for_delivery', 'out_for_pickup'].includes(order.orderStatus)) return false;
     } else if (selectedFilter === 'returns') {
@@ -40,7 +50,9 @@ const ManageOrders = () => {
       const orderIdMatch = order._id?.toLowerCase().includes(query);
       const userNameMatch = order.user?.name?.toLowerCase().includes(query);
       const productMatch = order.items?.some(item => item.product?.title?.toLowerCase().includes(query));
-      return orderIdMatch || userNameMatch || productMatch;
+      const upiMatch = order.cancellationDetails?.upiId?.toLowerCase().includes(query) || order.returnDetails?.upiId?.toLowerCase().includes(query);
+      const bankMatch = order.cancellationDetails?.bankDetails?.accountNumber?.includes(query) || order.returnDetails?.bankDetails?.accountNumber?.includes(query);
+      return orderIdMatch || userNameMatch || productMatch || upiMatch || bankMatch;
     }
     return true;
   });
@@ -194,7 +206,47 @@ const ManageOrders = () => {
 
   const pendingNewOrders = orders.filter((o) => o.orderStatus === 'placed');
   const pendingReturnRequests = orders.filter((o) => o.orderStatus === 'return_requested');
-  const totalPendingActionCount = pendingNewOrders.length + pendingReturnRequests.length;
+  const pendingRefundOrders = orders.filter((o) => {
+    const isPaid = o.paymentStatus === 'paid' || o.paymentMethod === 'ONLINE' || (o.cancellationDetails?.refundMethod && o.cancellationDetails.refundMethod !== 'none');
+    const isReturn = ['return_requested', 'return_approved', 'out_for_pickup', 'returning_to_seller', 'returned'].includes(o.orderStatus);
+    return o.paymentStatus === 'refund_pending' || (o.orderStatus === 'cancelled' && isPaid && o.paymentStatus !== 'refunded') || (isReturn && o.paymentStatus !== 'refunded');
+  });
+  const totalPendingActionCount = pendingNewOrders.length + pendingReturnRequests.length + pendingRefundOrders.length;
+
+  const handleConfirmRefund = async () => {
+    if (!refundModalOrder) return;
+    setSubmittingRefund(true);
+    try {
+      const { data } = await API.put(`/api/orders/${refundModalOrder._id}/refund`, {
+        paymentStatus: 'refunded',
+        transactionReference: refundTxnRef,
+        adminComment: refundAdminNote,
+      });
+
+      setOrders((prev) =>
+        prev.map((order) => {
+          if (order._id === refundModalOrder._id) {
+            return {
+              ...order,
+              paymentStatus: 'refunded',
+              cancellationDetails: data.order?.cancellationDetails || order.cancellationDetails,
+              returnDetails: data.order?.returnDetails || order.returnDetails,
+            };
+          }
+          return order;
+        })
+      );
+
+      toast.success(`Refund of ₹${refundModalOrder.totalAmount} marked as completed!`);
+      setRefundModalOrder(null);
+      setRefundTxnRef('');
+      setRefundAdminNote('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to process refund');
+    } finally {
+      setSubmittingRefund(false);
+    }
+  };
 
   if (loading && orders.length === 0) {
     return (
@@ -216,7 +268,7 @@ const ManageOrders = () => {
               </span>
             )}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review new orders, manage shipping status, and handle return requests</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review new orders, manage fulfillment status, process refunds and handle returns</p>
         </div>
       </div>
 
@@ -242,11 +294,11 @@ const ManageOrders = () => {
               </h2>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Orders & Return requests awaiting your immediate review & approval
+              Orders, refunds & return requests awaiting your immediate review & approval
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
             {/* New Orders Pending Accept/Confirm */}
             {pendingNewOrders.length > 0 && (
               <div className="bg-white dark:bg-[#0f172a] rounded-xl p-4 border border-blue-500/20 shadow-sm space-y-3">
@@ -290,6 +342,59 @@ const ManageOrders = () => {
                             Cancel
                           </button>
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pending Refund Payouts */}
+            {pendingRefundOrders.length > 0 && (
+              <div className="bg-white dark:bg-[#0f172a] rounded-xl p-4 border border-emerald-500/20 shadow-sm space-y-3">
+                <div className="flex justify-between items-center border-b border-slate-150 dark:border-slate-800 pb-2">
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <CreditCard className="h-4 w-4" />
+                    <span>Refunds Pending ({pendingRefundOrders.length})</span>
+                  </span>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded font-bold">Payout Required</span>
+                </div>
+
+                <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                  {pendingRefundOrders.map((order) => (
+                    <div key={order._id} className="p-3 rounded-lg bg-emerald-500/5 dark:bg-slate-900/60 border border-emerald-500/20 text-xs space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-slate-900 dark:text-white uppercase">#{order._id.substring(0, 10)}</span>
+                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400">₹{order.totalAmount}</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                        {order.cancellationDetails?.refundMethod === 'upi' || order.returnDetails?.refundMethod === 'upi' ? (
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            UPI: {order.cancellationDetails?.upiId || order.returnDetails?.upiId}
+                          </span>
+                        ) : (
+                          <span>
+                            Bank: <strong>{order.cancellationDetails?.bankDetails?.bankName || order.returnDetails?.bankDetails?.bankName || 'Bank'}</strong> (A/C: ****{(order.cancellationDetails?.bankDetails?.accountNumber || order.returnDetails?.bankDetails?.accountNumber)?.slice(-4)})
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-emerald-500/20">
+                        <span className="text-[10px] text-slate-450 truncate max-w-[100px]">
+                          {order.cancellationDetails?.reason || order.returnDetails?.reason || 'Cancelled'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRefundModalOrder(order);
+                            setRefundTxnRef('');
+                            setRefundAdminNote('');
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center gap-1 shadow-sm shadow-emerald-500/20"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Pay & Refund</span>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -375,6 +480,23 @@ const ManageOrders = () => {
             {totalPendingActionCount > 0 && (
               <span className="rounded-full bg-slate-950 text-amber-400 px-2 py-0.5 text-[10px] font-black">
                 {totalPendingActionCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setSelectedFilter('refund_pending')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+              selectedFilter === 'refund_pending'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                : 'bg-slate-100 dark:bg-slate-900 text-slate-650 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+            }`}
+          >
+            <CreditCard className="h-4 w-4" />
+            <span>Refund Desk</span>
+            {pendingRefundOrders.length > 0 && (
+              <span className="rounded-full bg-white/20 text-white px-2 py-0.5 text-[10px] font-black">
+                {pendingRefundOrders.length}
               </span>
             )}
           </button>
@@ -472,8 +594,10 @@ const ManageOrders = () => {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
-            const isImmutable = order.orderStatus === 'cancelled' || order.orderStatus === 'returned';
             const isProcessing = actionLoadingId === order._id;
+            const isPaidOrder = order.paymentStatus === 'paid' || order.paymentMethod === 'ONLINE' || (order.cancellationDetails?.refundMethod && order.cancellationDetails.refundMethod !== 'none');
+            const isReturnOrder = ['return_requested', 'return_approved', 'out_for_pickup', 'returning_to_seller', 'returned'].includes(order.orderStatus);
+            const needsRefund = order.paymentStatus === 'refund_pending' || (order.orderStatus === 'cancelled' && isPaidOrder && order.paymentStatus !== 'refunded') || (isReturnOrder && order.paymentStatus !== 'refunded');
 
             return (
               <div
@@ -490,6 +614,16 @@ const ManageOrders = () => {
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border uppercase ${getStatusBadgeClass(order.orderStatus)}`}>
                         {getStatusLabel(order.orderStatus)}
                       </span>
+                      {order.paymentStatus === 'refund_pending' && (
+                        <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 uppercase animate-pulse">
+                          Refund Pending
+                        </span>
+                      )}
+                      {order.paymentStatus === 'refunded' && (
+                        <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase">
+                          ✓ Refunded
+                        </span>
+                      )}
                     </div>
                     <div className="text-[10px] text-slate-500 mt-1 flex flex-wrap items-center gap-2">
                       <span>Placed on: {new Date(order.createdAt).toLocaleString()}</span>
@@ -507,7 +641,7 @@ const ManageOrders = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-500">Status:</span>
                       <select
-                        disabled={isImmutable || isProcessing}
+                        disabled={isProcessing}
                         value={statusMap[order._id] || order.orderStatus}
                         onChange={(e) => setStatusMap({ ...statusMap, [order._id]: e.target.value })}
                         className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -538,7 +672,7 @@ const ManageOrders = () => {
                         type="text"
                         placeholder="Courier ID, tracking details..."
                         value={notesMap[order._id] || ''}
-                        disabled={isImmutable || isProcessing}
+                        disabled={isProcessing}
                         onChange={(e) => setNotesMap({ ...notesMap, [order._id]: e.target.value })}
                         className="w-full sm:w-48 rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       />
@@ -547,7 +681,7 @@ const ManageOrders = () => {
                     {/* Submit Update button */}
                     <button
                       type="button"
-                      disabled={isImmutable || isProcessing}
+                      disabled={isProcessing}
                       onClick={() => handleUpdateOrder(order._id)}
                       className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
@@ -558,6 +692,22 @@ const ManageOrders = () => {
                       )}
                       <span>Update</span>
                     </button>
+
+                    {/* Quick Confirm Refund Button if applicable */}
+                    {needsRefund && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRefundModalOrder(order);
+                          setRefundTxnRef('');
+                          setRefundAdminNote('');
+                        }}
+                        className="rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 shadow-sm shadow-emerald-500/20"
+                      >
+                        <CreditCard className="h-3.5 w-3.5" />
+                        <span>Confirm Refund (₹{order.totalAmount})</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -608,6 +758,10 @@ const ManageOrders = () => {
                         <strong className={`capitalize ${
                           order.paymentStatus === 'paid'
                             ? 'text-emerald-500'
+                            : order.paymentStatus === 'refunded'
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : order.paymentStatus === 'refund_pending'
+                            ? 'text-amber-500 font-bold'
                             : order.paymentStatus === 'failed'
                             ? 'text-red-500'
                             : 'text-amber-500'
@@ -731,6 +885,98 @@ const ManageOrders = () => {
                   </div>
                 )}
 
+                {/* Cancellation & Refund Payout Box */}
+                {(order.orderStatus === 'cancelled' || order.cancellationDetails?.reason || order.paymentStatus === 'refund_pending' || order.paymentStatus === 'refunded') && (
+                  <div className={`rounded-xl p-4 text-xs space-y-3 border ${
+                    order.paymentStatus === 'refunded'
+                      ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/25'
+                      : 'bg-purple-500/5 dark:bg-purple-500/10 border-purple-500/25'
+                  }`}>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+                        <CreditCard className={`h-4 w-4 ${order.paymentStatus === 'refunded' ? 'text-emerald-500' : 'text-purple-500'}`} />
+                        <span>Cancellation & Refund Payout Info</span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        order.paymentStatus === 'refunded'
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                          : needsRefund
+                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 animate-pulse'
+                          : 'bg-slate-500/20 text-slate-600 dark:text-slate-400'
+                      }`}>
+                        {order.paymentStatus === 'refunded'
+                          ? '✓ REFUNDED & COMPLETED'
+                          : needsRefund
+                          ? '⚡ REFUND ACTION REQUIRED'
+                          : 'COD CANCELLED (NO PAYMENT COLLECTED)'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[11px] text-slate-500 block">Cancellation Reason:</span>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                          {order.cancellationDetails?.reason || 'Customer cancelled order'}
+                        </p>
+                        {order.cancellationDetails?.requestedAt && (
+                          <span className="text-[10px] text-slate-400">
+                            Requested at: {new Date(order.cancellationDetails.requestedAt).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-[11px] text-slate-500 block">Payout Destination:</span>
+                        {(order.cancellationDetails?.refundMethod === 'upi' || order.returnDetails?.refundMethod === 'upi') ? (
+                          <div className="flex items-center gap-1.5 font-bold text-blue-600 dark:text-blue-400">
+                            <Smartphone className="h-3.5 w-3.5" />
+                            <span>UPI ID: {order.cancellationDetails?.upiId || order.returnDetails?.upiId}</span>
+                          </div>
+                        ) : (order.cancellationDetails?.bankDetails?.accountNumber || order.returnDetails?.bankDetails?.accountNumber) ? (
+                          <div className="space-y-0.5 text-slate-700 dark:text-slate-300">
+                            <p className="font-bold flex items-center gap-1">
+                              <Building2 className="h-3.5 w-3.5 text-slate-500" />
+                              <span>{order.cancellationDetails?.bankDetails?.bankName || order.returnDetails?.bankDetails?.bankName || 'Bank'}</span>
+                            </p>
+                            <p className="text-[11px] pl-4 text-slate-600 dark:text-slate-400">
+                              A/C: {order.cancellationDetails?.bankDetails?.accountNumber || order.returnDetails?.bankDetails?.accountNumber} ({order.cancellationDetails?.bankDetails?.accountHolderName || order.returnDetails?.bankDetails?.accountHolderName})
+                            </p>
+                            <p className="text-[10px] pl-4 text-slate-500">
+                              IFSC: {order.cancellationDetails?.bankDetails?.ifscCode || order.returnDetails?.bankDetails?.ifscCode}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 italic">No refund destination required (COD order cancelled before delivery)</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {order.cancellationDetails?.adminComment && (
+                      <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/50 text-[11px]">
+                        <strong className="text-slate-700 dark:text-slate-300">Admin Processing Note:</strong>{' '}
+                        <span className="text-slate-600 dark:text-slate-400">{order.cancellationDetails.adminComment}</span>
+                      </div>
+                    )}
+
+                    {needsRefund && order.paymentStatus !== 'refunded' && (
+                      <div className="pt-2 border-t border-purple-500/20 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRefundModalOrder(order);
+                            setRefundTxnRef('');
+                            setRefundAdminNote('');
+                          }}
+                          className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Confirm Refund Paid (₹{order.totalAmount})</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Display current saved message notes on admin card */}
                 {order.shippingNotes && (
                   <div className="flex items-start gap-2 rounded-xl bg-slate-100/60 dark:bg-slate-900/60 p-3.5 border border-slate-200 dark:border-slate-850 text-xs">
@@ -810,6 +1056,115 @@ const ManageOrders = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Confirm Refund Paid Modal */}
+      {refundModalOrder && (
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setRefundModalOrder(null)}
+        >
+          <div className="relative max-w-md w-full bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-emerald-500" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Confirm Refund Payment</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRefundModalOrder(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Order <strong className="text-slate-800 dark:text-slate-200 uppercase">#{refundModalOrder._id.substring(0, 10)}</strong> • Total Refund: <strong className="text-emerald-600 dark:text-emerald-400">₹{refundModalOrder.totalAmount}</strong>
+            </p>
+
+            {/* Payout Destination Info */}
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1.5">
+              <span className="font-bold text-emerald-700 dark:text-emerald-300 block text-[11px] uppercase tracking-wider">
+                Customer Payout Destination:
+              </span>
+              {(refundModalOrder.cancellationDetails?.refundMethod === 'upi' || refundModalOrder.returnDetails?.refundMethod === 'upi') ? (
+                <p className="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                  <Smartphone className="h-3.5 w-3.5" />
+                  <span>UPI ID: {refundModalOrder.cancellationDetails?.upiId || refundModalOrder.returnDetails?.upiId}</span>
+                </p>
+              ) : (
+                <div className="space-y-1 text-slate-700 dark:text-slate-300">
+                  <p className="font-bold flex items-center gap-1">
+                    <Building2 className="h-3.5 w-3.5 text-slate-500" />
+                    <span>Bank: {refundModalOrder.cancellationDetails?.bankDetails?.bankName || refundModalOrder.returnDetails?.bankDetails?.bankName || 'Bank Transfer'}</span>
+                  </p>
+                  <p className="pl-5 text-slate-600 dark:text-slate-400">
+                    A/C: ****{(refundModalOrder.cancellationDetails?.bankDetails?.accountNumber || refundModalOrder.returnDetails?.bankDetails?.accountNumber)?.slice(-4)} ({refundModalOrder.cancellationDetails?.bankDetails?.accountHolderName || refundModalOrder.returnDetails?.bankDetails?.accountHolderName})
+                  </p>
+                  <p className="pl-5 text-slate-500">
+                    IFSC: {refundModalOrder.cancellationDetails?.bankDetails?.ifscCode || refundModalOrder.returnDetails?.bankDetails?.ifscCode}
+                  </p>
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-500 pt-1 border-t border-emerald-500/20 mt-1">
+                Reason: <span className="font-medium text-slate-700 dark:text-slate-300">{refundModalOrder.cancellationDetails?.reason || refundModalOrder.returnDetails?.reason || 'Cancelled by customer'}</span>
+              </p>
+            </div>
+
+            {/* Transaction Ref Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Payment UTR / Transaction Reference ID:
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. UPI Ref: 329182390123 / NEFT UTR..."
+                value={refundTxnRef}
+                onChange={(e) => setRefundTxnRef(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            {/* Admin confirmation comment */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Admin Confirmation Note (Sent to Customer):
+              </label>
+              <textarea
+                rows={2}
+                placeholder="e.g. Amount refunded to your submitted UPI ID successfully."
+                value={refundAdminNote}
+                onChange={(e) => setRefundAdminNote(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setRefundModalOrder(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={submittingRefund}
+                onClick={handleConfirmRefund}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center gap-1.5 shadow-md shadow-emerald-500/25 disabled:opacity-50"
+              >
+                {submittingRefund ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
+                <span>Confirm Refund Paid (₹{refundModalOrder.totalAmount})</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

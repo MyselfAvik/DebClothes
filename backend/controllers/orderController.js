@@ -157,7 +157,7 @@ export const getAllOrders = async (req, res, next) => {
 // @access  Private/Admin
 export const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status, shippingNotes } = req.body;
+    const { status, shippingNotes, paymentStatus, transactionReference, adminComment } = req.body;
     const validStatuses = [
       'placed',
       'confirmed',
@@ -173,9 +173,9 @@ export const updateOrderStatus = async (req, res, next) => {
       'return_rejected'
     ];
 
-    if (!status || !validStatuses.includes(status)) {
+    if (status && !validStatuses.includes(status)) {
       res.status(400);
-      throw new Error('Please provide a valid status: placed, confirmed, shipped, out_for_delivery, delivered, cancelled, return_requested, return_approved, out_for_pickup, returned, or return_rejected');
+      throw new Error('Please provide a valid status');
     }
 
     const order = await Order.findById(req.params.id).populate('user', 'name email');
@@ -184,14 +184,73 @@ export const updateOrderStatus = async (req, res, next) => {
       throw new Error('Order not found');
     }
 
-    // If order was already cancelled or completed returned, prevent editing status
+    const note = adminComment || transactionReference || shippingNotes || '';
+
+    // If order is already cancelled, allow updating payment status and admin notes smoothly
     if (order.orderStatus === 'cancelled') {
-      res.status(400);
-      throw new Error('Order is already cancelled and cannot be updated');
+      if (paymentStatus) {
+        order.paymentStatus = paymentStatus;
+      }
+      if (note) {
+        if (!order.cancellationDetails) {
+          order.cancellationDetails = {
+            reason: 'Order cancelled',
+            requestedAt: new Date(),
+            refundMethod: 'none',
+            upiId: '',
+            bankDetails: { accountHolderName: '', accountNumber: '', ifscCode: '', bankName: '' },
+            adminComment: note,
+          };
+        } else {
+          order.cancellationDetails.adminComment = note;
+        }
+        order.shippingNotes = note;
+      }
+
+      order.statusHistory.push({
+        status: 'cancelled',
+        message: `Admin update: ${paymentStatus ? 'Payment status updated to ' + paymentStatus.toUpperCase() + '. ' : ''}${note}`
+      });
+
+      const updatedOrder = await order.save();
+
+      // Trigger update email alert
+      if (order.user && order.user.email) {
+        try {
+          await sendStatusUpdateEmail(
+            order.user.email,
+            order.user.name,
+            order._id,
+            'cancelled',
+            `Status update on your cancelled order: ${paymentStatus ? 'Payment: ' + paymentStatus.toUpperCase() + '. ' : ''}${note}`
+          );
+        } catch (mailErr) {
+          console.log('Email send error:', mailErr.message);
+        }
+      }
+
+      return res.json(updatedOrder);
     }
+
+    // If order is already returned, allow updating payment status and notes smoothly
     if (order.orderStatus === 'returned') {
-      res.status(400);
-      throw new Error('Order has already been returned and refunded and cannot be modified');
+      if (paymentStatus) {
+        order.paymentStatus = paymentStatus;
+      }
+      if (note) {
+        if (order.returnDetails) {
+          order.returnDetails.adminComment = note;
+        }
+        order.shippingNotes = note;
+      }
+
+      order.statusHistory.push({
+        status: 'returned',
+        message: `Admin update: ${paymentStatus ? 'Payment status updated to ' + paymentStatus.toUpperCase() + '. ' : ''}${note}`
+      });
+
+      const updatedOrder = await order.save();
+      return res.json(updatedOrder);
     }
 
     // If status transitions to cancelled, restore sizes stock values on Product documents
@@ -207,18 +266,18 @@ export const updateOrderStatus = async (req, res, next) => {
         }
       }
       if (order.paymentStatus === 'paid') {
-        order.paymentStatus = 'refunded';
+        order.paymentStatus = paymentStatus || 'refund_pending';
         if (order.paymentId && order.paymentId.startsWith('pay_')) {
           try {
             await razorpayInstance.payments.refund(order.paymentId, {
               amount: Math.round(order.totalAmount * 100)
             });
           } catch (err) {
-            console.log('Razorpay Refund failed during admin cancel:', err.message);
+            console.log('Razorpay Refund note during admin cancel:', err.message);
           }
         }
       } else {
-        order.paymentStatus = 'failed';
+        order.paymentStatus = paymentStatus || 'failed';
       }
     }
 
@@ -242,33 +301,43 @@ export const updateOrderStatus = async (req, res, next) => {
           }
         }
       }
-      order.paymentStatus = 'refunded';
+      order.paymentStatus = paymentStatus || 'refunded';
     }
 
-    if (order.returnDetails && shippingNotes) {
-      order.returnDetails.adminComment = shippingNotes;
+    if (paymentStatus) {
+      order.paymentStatus = paymentStatus;
     }
 
-    order.orderStatus = status;
-    order.shippingNotes = shippingNotes || '';
+    if (order.returnDetails && note) {
+      order.returnDetails.adminComment = note;
+    }
+
+    if (status) {
+      order.orderStatus = status;
+    }
+    order.shippingNotes = note || order.shippingNotes || '';
 
     // Push new status to history
     order.statusHistory.push({
-      status,
-      message: shippingNotes || `Status updated to ${status.replace(/_/g, ' ')}`
+      status: order.orderStatus,
+      message: note || `Status updated to ${(status || order.orderStatus).replace(/_/g, ' ')}`
     });
 
     const updatedOrder = await order.save();
 
     // Trigger update email alert
     if (order.user && order.user.email) {
-      await sendStatusUpdateEmail(
-        order.user.email,
-        order.user.name,
-        order._id,
-        status,
-        shippingNotes
-      );
+      try {
+        await sendStatusUpdateEmail(
+          order.user.email,
+          order.user.name,
+          order._id,
+          order.orderStatus,
+          note
+        );
+      } catch (mailErr) {
+        console.log('Email send error:', mailErr.message);
+      }
     }
 
     res.json(updatedOrder);
