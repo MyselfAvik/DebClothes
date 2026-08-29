@@ -39,11 +39,12 @@ export const promptGoogleOAuthAsync = async () => {
     });
     console.log('[Google OAuth] Generated Redirect URI:', redirectUri);
 
-    // 3. Create Google OAuth Request
+    // 3. Create Google OAuth Request (usePKCE: false is required for ResponseType.Token on Google OAuth)
     const request = new AuthSession.AuthRequest({
       clientId,
       scopes: ['openid', 'profile', 'email'],
       responseType: AuthSession.ResponseType.Token, // Returns real Google access_token
+      usePKCE: false,
       redirectUri,
       extraParams: {
         prompt: 'select_account',
