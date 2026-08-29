@@ -309,15 +309,16 @@ const styles = StyleSheet.create({
   },
   badgeAdminText: {
     fontSize: 10,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 1,
   },
   heroTitle: {
     fontSize: 22,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   heroSub: {
     fontSize: 12,
+    fontFamily: 'Outfit_500Medium',
     marginTop: 2,
   },
   heroLogo: {
@@ -337,12 +338,12 @@ const styles = StyleSheet.create({
   },
   revenueLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     textTransform: 'uppercase',
   },
   revenueVal: {
     fontSize: 22,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     marginTop: 2,
   },
   revenueBadge: {
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
   revenueBadgeText: {
     color: '#10b981',
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   alertBanner: {
     flexDirection: 'row',
@@ -376,17 +377,18 @@ const styles = StyleSheet.create({
   },
   alertTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     color: '#f59e0b',
   },
   alertSub: {
     fontSize: 11,
+    fontFamily: 'Outfit_500Medium',
     color: '#d97706',
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     marginBottom: 12,
     marginTop: 6,
     letterSpacing: 0.5,
@@ -418,11 +420,11 @@ const styles = StyleSheet.create({
   },
   statVal: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   statLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     marginTop: 2,
   },
   menuList: {
@@ -451,10 +453,11 @@ const styles = StyleSheet.create({
   },
   menuItemTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   menuItemSub: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
     lineHeight: 15,
   },
@@ -468,7 +471,7 @@ const styles = StyleSheet.create({
   badgeCountText: {
     color: '#ffffff',
     fontSize: 11,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   center: {
     flex: 1,
@@ -479,10 +482,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   errorText: {
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
     marginBottom: 12,
     textAlign: 'center',
   },

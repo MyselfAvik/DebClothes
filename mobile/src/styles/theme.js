@@ -64,25 +64,37 @@ export const GRADIENTS = {
 export const TYPOGRAPHY = {
   h1: {
     fontSize: 28,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   h2: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   h3: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   body: {
     fontSize: 15,
-    fontWeight: '400',
+    fontFamily: 'Outfit_400Regular',
   },
   subtitle: {
     fontSize: 13,
-    fontWeight: '400',
+    fontFamily: 'Outfit_500Medium',
+  },
+  medium: {
+    fontFamily: 'Outfit_500Medium',
+  },
+  semiBold: {
+    fontFamily: 'Outfit_600SemiBold',
   },
   bold: {
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
+  },
+  extraBold: {
+    fontFamily: 'Outfit_800ExtraBold',
+  },
+  black: {
+    fontFamily: 'Outfit_900Black',
   },
 };

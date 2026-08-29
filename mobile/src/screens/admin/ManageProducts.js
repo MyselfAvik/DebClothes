@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     marginLeft: 16,
     flex: 1,
   },
@@ -187,15 +187,16 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   subText: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   price: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginTop: 4,
   },
   actions: {
@@ -218,10 +219,11 @@ const styles = StyleSheet.create({
   errorText: {
     textAlign: 'center',
     marginVertical: 10,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 40,
+    fontFamily: 'Outfit_500Medium',
   },
 });

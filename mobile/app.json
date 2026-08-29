@@ -56,7 +56,19 @@
           }
         }
       ],
-      "expo-font"
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Outfit_400Regular.ttf",
+            "./assets/fonts/Outfit_500Medium.ttf",
+            "./assets/fonts/Outfit_600SemiBold.ttf",
+            "./assets/fonts/Outfit_700Bold.ttf",
+            "./assets/fonts/Outfit_800ExtraBold.ttf",
+            "./assets/fonts/Outfit_900Black.ttf"
+          ]
+        }
+      ]
     ],
     "extra": {
       "eas": {

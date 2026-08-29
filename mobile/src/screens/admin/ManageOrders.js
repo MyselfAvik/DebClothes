@@ -538,15 +538,16 @@ const styles = StyleSheet.create({
   },
   productText: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   productSubText: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   productPrice: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   divider: {
     borderBottomWidth: 1,
@@ -564,16 +565,17 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
+    fontFamily: 'Outfit_500Medium',
     marginLeft: 6,
   },
   paymentStatusText: {
     fontSize: 10.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginBottom: 2,
   },
   totalAmount: {
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   actionRow: {
     gap: 8,
@@ -589,7 +591,7 @@ const styles = StyleSheet.create({
   },
   refundShortcutText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     color: '#f59e0b',
   },
   updateBtn: {
@@ -602,7 +604,7 @@ const styles = StyleSheet.create({
   },
   updateBtnText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   center: {
     flex: 1,
@@ -612,7 +614,7 @@ const styles = StyleSheet.create({
   errorText: {
     textAlign: 'center',
     marginVertical: 10,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
   },
   emptyContainer: {
     flex: 1,
@@ -623,10 +625,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   emptySub: {
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     textAlign: 'center',
     marginTop: 6,
   },
@@ -648,7 +651,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   statusOptions: {
     flexDirection: 'row',
@@ -666,11 +669,11 @@ const styles = StyleSheet.create({
   },
   statusTabText: {
     fontSize: 11.5,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
   },
   modalLabel: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
     marginTop: 10,
   },
   modalInput: {
@@ -679,6 +682,7 @@ const styles = StyleSheet.create({
     padding: 10,
     height: 44,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     marginBottom: 16,
     marginTop: 8,
   },
@@ -692,6 +696,6 @@ const styles = StyleSheet.create({
   modalSaveText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
 });
