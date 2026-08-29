@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   listContent: {
     padding: 12,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: (width - 32) / 2,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 0.5,
     marginBottom: 12,
     overflow: 'hidden',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   productTitle: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   assuredContainer: {
     backgroundColor: '#fff9e6',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   assuredText: {
     color: '#b45309',
     fontSize: 9,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   priceRow: {
     flexDirection: 'row',
@@ -193,18 +193,19 @@ const styles = StyleSheet.create({
   },
   productPrice: {
     fontSize: 14,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   productMrp: {
     fontSize: 11,
     color: '#878787',
     textDecorationLine: 'line-through',
     marginLeft: 6,
+    fontFamily: 'Outfit_500Medium',
   },
   discountPercent: {
     fontSize: 11,
     color: '#388e3c',
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginLeft: 6,
   },
   ratingRow: {
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 4,
   },
   emptyContainer: {
@@ -225,13 +226,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     marginBottom: 8,
   },
   emptySub: {
     fontSize: 13.5,
     textAlign: 'center',
     lineHeight: 20,
+    fontFamily: 'Outfit_400Regular',
     marginBottom: 24,
   },
   shopBtn: {
@@ -242,6 +244,6 @@ const styles = StyleSheet.create({
   shopBtnText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
 });

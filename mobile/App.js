@@ -169,7 +169,7 @@ function AppContent() {
               : currentScreen === 'HOME'
               ? isDark ? '#131122' : '#7c3aed'
               : colors.background,
-          paddingTop: currentScreen === 'HOME' || layout === 'auth' ? 0 : (Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0),
+          paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0,
         },
       ]}
     >
@@ -345,6 +345,13 @@ export default function App() {
     Outfit_700Bold,
     Outfit_800ExtraBold,
     Outfit_900Black,
+    Outfit: Outfit_500Medium,
+    'Outfit-Regular': Outfit_400Regular,
+    'Outfit-Medium': Outfit_500Medium,
+    'Outfit-SemiBold': Outfit_600SemiBold,
+    'Outfit-Bold': Outfit_700Bold,
+    'Outfit-ExtraBold': Outfit_800ExtraBold,
+    'Outfit-Black': Outfit_900Black,
   });
 
   if (!fontsLoaded && !fontError) {
