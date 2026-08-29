@@ -12,6 +12,7 @@ import Home from './pages/customer/Home';
 import ProductDetail from './pages/customer/ProductDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Customer Pages
 import Profile from './pages/customer/Profile';
@@ -44,6 +45,8 @@ function App() {
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
 
                   {/* Customer Protected Routes */}
                   <Route
