@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, StatusBar, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, View, Text, TextInput, SafeAreaView, TouchableOpacity, StatusBar, ActivityIndicator, Platform } from 'react-native';
 import {
   useFonts,
   Outfit_400Regular,
@@ -9,6 +9,13 @@ import {
   Outfit_800ExtraBold,
   Outfit_900Black,
 } from '@expo-google-fonts/outfit';
+
+// Set Global Outfit typography across all Text & TextInput components
+if (Text.defaultProps == null) Text.defaultProps = {};
+Text.defaultProps.style = { fontFamily: 'Outfit_500Medium' };
+
+if (TextInput.defaultProps == null) TextInput.defaultProps = {};
+TextInput.defaultProps.style = { fontFamily: 'Outfit_500Medium' };
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CartProvider, useCart } from './src/context/CartContext';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
@@ -162,7 +169,7 @@ function AppContent() {
               : currentScreen === 'HOME'
               ? isDark ? '#131122' : '#7c3aed'
               : colors.background,
-          paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0,
+          paddingTop: currentScreen === 'HOME' || layout === 'auth' ? 0 : (Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0),
         },
       ]}
     >
