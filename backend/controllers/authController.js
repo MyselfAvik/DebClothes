@@ -583,7 +583,11 @@ export const googleLogin = async (req, res, next) => {
       try {
         const ticket = await client.verifyIdToken({
           idToken: token,
-          audience: googleClientId,
+          audience: [
+            googleClientId,
+            '32943367466-lo67273e44kko5sqet381g37gv1fkqsm.apps.googleusercontent.com',
+            '32943367466-bpa08tvu384tpvlr1vmk6etatkfkkjce.apps.googleusercontent.com'
+          ].filter(Boolean),
         });
         const payload = ticket.getPayload();
         if (payload && payload.email) {
