@@ -30,12 +30,8 @@ export const promptGoogleOAuthAsync = async () => {
       console.log('Using default Google client ID:', DEFAULT_CLIENT_ID);
     }
 
-    // Use official Expo Auth Proxy URI so Web Client ID accepts https://auth.expo.io/@avikdangar/mobile
-    const redirectUri = AuthSession.makeRedirectUri({
-      scheme: 'debclothes',
-      useProxy: true,
-      preferLocalhost: false,
-    });
+    // Explicitly use Google Cloud Console authorized HTTPS redirect URI
+    const redirectUri = 'https://auth.expo.io/@avikdangar/mobile';
     console.log('[Google OAuth] Using Redirect URI:', redirectUri);
 
     // Create Authorization Code request with PKCE
