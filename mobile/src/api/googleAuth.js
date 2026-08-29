@@ -30,9 +30,10 @@ export const promptGoogleOAuthAsync = async () => {
       console.log('Using default Google client ID:', DEFAULT_CLIENT_ID);
     }
 
-    // Use AuthSession.makeRedirectUri with project scheme
+    // Use official Expo Auth Proxy URI so Web Client ID accepts https://auth.expo.io/@avikdangar/mobile
     const redirectUri = AuthSession.makeRedirectUri({
       scheme: 'debclothes',
+      useProxy: true,
       preferLocalhost: false,
     });
     console.log('[Google OAuth] Using Redirect URI:', redirectUri);
@@ -49,7 +50,7 @@ export const promptGoogleOAuthAsync = async () => {
       },
     });
 
-    const result = await request.promptAsync(discovery);
+    const result = await request.promptAsync(discovery, { useProxy: true });
 
     if (result.type === 'success' && result.params?.code) {
       // Exchange Authorization Code for Access / ID Token using PKCE
