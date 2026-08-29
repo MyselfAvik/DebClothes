@@ -563,6 +563,43 @@ export const cancelMyOrder = async (req, res, next) => {
       throw new Error(`Order has already been ${order.orderStatus.replace(/_/g, ' ')} and cannot be cancelled.`);
     }
 
+    // Check if order was paid online
+    const isOnlinePaid = order.paymentStatus === 'paid' || order.paymentMethod === 'ONLINE';
+    const {
+      reason,
+      refundMethod = isOnlinePaid ? 'upi' : 'none',
+      upiId,
+      accountHolderName,
+      accountNumber,
+      ifscCode,
+      bankName,
+    } = req.body;
+
+    if (isOnlinePaid) {
+      if (refundMethod === 'upi') {
+        if (!upiId || !upiId.trim() || !upiId.includes('@')) {
+          res.status(400);
+          throw new Error('Please provide a valid UPI ID (e.g. yourname@oksbi / 9876543210@paytm) for refund processing');
+        }
+      } else if (refundMethod === 'bank_transfer') {
+        if (!accountHolderName || !accountHolderName.trim()) {
+          res.status(400);
+          throw new Error('Please provide Account Holder Name for bank refund');
+        }
+        if (!accountNumber || !accountNumber.trim() || accountNumber.trim().length < 6) {
+          res.status(400);
+          throw new Error('Please provide a valid Bank Account Number');
+        }
+        if (!ifscCode || !ifscCode.trim() || ifscCode.trim().length < 6) {
+          res.status(400);
+          throw new Error('Please provide a valid IFSC Code');
+        }
+      } else {
+        res.status(400);
+        throw new Error('Please select a valid refund method: UPI or Bank Transfer');
+      }
+    }
+
     // Restore stock levels for each item
     for (const item of order.items) {
       const product = await Product.findById(item.product);
@@ -576,28 +613,74 @@ export const cancelMyOrder = async (req, res, next) => {
     }
 
     order.orderStatus = 'cancelled';
-    if (order.paymentStatus === 'paid') {
+
+    let refundSummary = '';
+    if (isOnlinePaid) {
       order.paymentStatus = 'refunded';
+      order.cancellationDetails = {
+        reason: (reason || 'Order cancelled by customer before shipment').trim(),
+        requestedAt: new Date(),
+        refundMethod,
+        upiId: refundMethod === 'upi' ? upiId.trim() : '',
+        bankDetails: refundMethod === 'bank_transfer' ? {
+          accountHolderName: accountHolderName.trim(),
+          accountNumber: accountNumber.trim(),
+          ifscCode: ifscCode.trim().toUpperCase(),
+          bankName: (bankName || '').trim(),
+        } : {
+          accountHolderName: '',
+          accountNumber: '',
+          ifscCode: '',
+          bankName: '',
+        },
+        adminComment: '',
+      };
+
+      refundSummary = refundMethod === 'upi'
+        ? `Refund destination: UPI (${upiId.trim()})`
+        : `Refund destination: Bank A/C ${accountNumber.trim().slice(-4)} (${bankName || 'Bank'})`;
+
+      // Also attempt gateway refund if Razorpay payment ID exists
       if (order.paymentId && order.paymentId.startsWith('pay_')) {
         try {
           await razorpayInstance.payments.refund(order.paymentId, {
-            amount: Math.round(order.totalAmount * 100)
+            amount: Math.round(order.totalAmount * 100),
           });
         } catch (err) {
-          console.log('Razorpay Refund failed during customer cancel:', err.message);
+          console.log('Razorpay Refund webhook note during customer cancel:', err.message);
         }
       }
     } else {
       order.paymentStatus = 'failed';
+      order.cancellationDetails = {
+        reason: (reason || 'Order cancelled by customer before shipment').trim(),
+        requestedAt: new Date(),
+        refundMethod: 'none',
+        upiId: '',
+        bankDetails: {
+          accountHolderName: '',
+          accountNumber: '',
+          ifscCode: '',
+          bankName: '',
+        },
+        adminComment: '',
+      };
     }
+
+    const cancelMessage = `Order cancelled by customer before shipment.${refundSummary ? ' ' + refundSummary + '.' : ''}${reason ? ' Reason: ' + reason.trim() : ''}`;
 
     order.statusHistory.push({
       status: 'cancelled',
-      message: 'Order cancelled by customer before shipment.'
+      message: cancelMessage,
     });
 
     const updatedOrder = await order.save();
-    res.json({ message: 'Order cancelled successfully and stock restored', order: updatedOrder });
+    res.json({
+      message: isOnlinePaid
+        ? `Order cancelled successfully. Refund of ₹${order.totalAmount} will be processed to your submitted ${refundMethod.toUpperCase()} details.`
+        : 'Order cancelled successfully and inventory restored',
+      order: updatedOrder,
+    });
   } catch (error) {
     next(error);
   }

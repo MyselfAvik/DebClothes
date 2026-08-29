@@ -120,6 +120,22 @@ const orderSchema = new mongoose.Schema({
     },
     default: undefined,
   },
+  cancellationDetails: {
+    type: {
+      reason: { type: String, default: '' },
+      requestedAt: { type: Date },
+      refundMethod: { type: String, enum: ['upi', 'bank_transfer', 'original', 'none'], default: 'none' },
+      upiId: { type: String, default: '' },
+      bankDetails: {
+        accountHolderName: { type: String, default: '' },
+        accountNumber: { type: String, default: '' },
+        ifscCode: { type: String, default: '' },
+        bankName: { type: String, default: '' },
+      },
+      adminComment: { type: String, default: '' },
+    },
+    default: undefined,
+  },
   expectedDeliveryDate: {
     type: Date,
   },

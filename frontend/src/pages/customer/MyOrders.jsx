@@ -29,19 +29,91 @@ const MyOrders = () => {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
 
-  const handleCancelOrder = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')) return;
-    setCancellingId(orderId);
+  // Cancellation Modal States
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedCancelOrder, setSelectedCancelOrder] = useState(null);
+  const [cancelReasonPreset, setCancelReasonPreset] = useState('Ordered by mistake');
+  const [cancelReasonDetails, setCancelReasonDetails] = useState('');
+  const [cancelRefundMethod, setCancelRefundMethod] = useState('upi'); // 'upi' | 'bank_transfer'
+  const [cancelUpiId, setCancelUpiId] = useState('');
+  const [cancelAccountHolder, setCancelAccountHolder] = useState('');
+  const [cancelBankName, setCancelBankName] = useState('');
+  const [cancelAccountNumber, setCancelAccountNumber] = useState('');
+  const [cancelConfirmAccount, setCancelConfirmAccount] = useState('');
+  const [cancelIfsc, setCancelIfsc] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const handleOpenCancelModal = (order) => {
+    setSelectedCancelOrder(order);
+    setCancelReasonPreset('Ordered by mistake');
+    setCancelReasonDetails('');
+    setCancelRefundMethod('upi');
+    setCancelUpiId('');
+    setCancelAccountHolder('');
+    setCancelBankName('');
+    setCancelAccountNumber('');
+    setCancelConfirmAccount('');
+    setCancelIfsc('');
+    setShowCancelModal(true);
+  };
+
+  const handleCancelSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedCancelOrder) return;
+    const isOnlinePaid = selectedCancelOrder.paymentStatus === 'paid' || selectedCancelOrder.paymentMethod === 'ONLINE';
+
+    const fullReason = `${cancelReasonPreset}${cancelReasonDetails.trim() ? `: ${cancelReasonDetails.trim()}` : ''}`;
+
+    if (isOnlinePaid) {
+      if (cancelRefundMethod === 'upi') {
+        if (!cancelUpiId.trim() || !cancelUpiId.includes('@')) {
+          toast.error('Please enter a valid UPI ID (e.g. yourname@oksbi / 9876543210@paytm)');
+          return;
+        }
+      } else {
+        if (!cancelAccountHolder.trim()) {
+          toast.error('Please enter the Account Holder Name');
+          return;
+        }
+        if (!cancelBankName.trim()) {
+          toast.error('Please enter the Bank Name');
+          return;
+        }
+        if (!cancelAccountNumber.trim() || cancelAccountNumber.trim().length < 6) {
+          toast.error('Please enter a valid Bank Account Number');
+          return;
+        }
+        if (cancelAccountNumber.trim() !== cancelConfirmAccount.trim()) {
+          toast.error('Account Number and Confirm Account Number do not match');
+          return;
+        }
+        if (!cancelIfsc.trim() || cancelIfsc.trim().length < 6) {
+          toast.error('Please enter a valid IFSC Code');
+          return;
+        }
+      }
+    }
+
+    setCancelLoading(true);
     try {
-      const { data } = await API.put(`/api/orders/${orderId}/cancel`);
+      const payload = {
+        reason: fullReason || 'Order cancelled by customer before shipment',
+        refundMethod: isOnlinePaid ? cancelRefundMethod : 'none',
+        upiId: cancelRefundMethod === 'upi' ? cancelUpiId.trim() : '',
+        accountHolderName: cancelAccountHolder.trim(),
+        bankName: cancelBankName.trim(),
+        accountNumber: cancelAccountNumber.trim(),
+        ifscCode: cancelIfsc.trim().toUpperCase(),
+      };
+
+      const { data } = await API.put(`/api/orders/${selectedCancelOrder._id}/cancel`, payload);
       toast.success(data.message || 'Order cancelled successfully');
-      setOrders((prevOrders) =>
-        prevOrders.map((o) => (o._id === orderId ? { ...o, orderStatus: 'cancelled' } : o))
-      );
+      setShowCancelModal(false);
+      fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to cancel order');
     } finally {
-      setCancellingId(null);
+      setCancelLoading(false);
     }
   };
 
@@ -605,15 +677,10 @@ const MyOrders = () => {
                   {(order.orderStatus === 'placed' || order.orderStatus === 'confirmed') && (
                     <button
                       type="button"
-                      disabled={cancellingId === order._id}
-                      onClick={() => handleCancelOrder(order._id)}
-                      className="rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                      onClick={() => handleOpenCancelModal(order)}
+                      className="rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5"
                     >
-                      {cancellingId === order._id ? (
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <X className="h-3.5 w-3.5" />
-                      )}
+                      <X className="h-3.5 w-3.5" />
                       <span>Cancel Order</span>
                     </button>
                   )}
@@ -770,6 +837,51 @@ const MyOrders = () => {
                           <p className="text-slate-600 dark:text-slate-400 mt-0.5">{order.returnDetails.adminComment}</p>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cancellation Details Section if cancelled online */}
+                {order.orderStatus === 'cancelled' && order.cancellationDetails && order.cancellationDetails.refundMethod !== 'none' && (
+                  <div className="border-t border-slate-150 dark:border-slate-800 pt-4">
+                    <div className="rounded-xl border border-red-500/30 bg-red-50/50 dark:bg-red-950/20 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                          <X className="h-4 w-4" />
+                          Cancellation & Refund Destination
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Refund: ₹{order.totalAmount}
+                        </span>
+                      </div>
+
+                      {order.cancellationDetails.reason && (
+                        <div className="text-xs text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-lg border border-red-500/20">
+                          <span className="font-semibold text-slate-500 block mb-0.5">Cancellation Reason:</span>
+                          <p>{order.cancellationDetails.reason}</p>
+                        </div>
+                      )}
+
+                      <div className="text-xs bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-lg border border-red-500/20 space-y-1">
+                        <span className="font-semibold text-slate-500 block">Payout Destination:</span>
+                        {order.cancellationDetails.refundMethod === 'upi' ? (
+                          <p className="font-bold text-blue-600 dark:text-blue-400">
+                            UPI ID: {order.cancellationDetails.upiId}
+                          </p>
+                        ) : order.cancellationDetails.bankDetails ? (
+                          <div>
+                            <p className="font-bold text-slate-800 dark:text-slate-200">
+                              Bank: {order.cancellationDetails.bankDetails.bankName || 'Bank Transfer'}
+                            </p>
+                            <p className="text-slate-500">
+                              A/C: ****{order.cancellationDetails.bankDetails.accountNumber?.slice(-4)} ({order.cancellationDetails.bankDetails.accountHolderName})
+                            </p>
+                            <p className="text-slate-500">
+                              IFSC: {order.cancellationDetails.bankDetails.ifscCode}
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1036,6 +1148,226 @@ const MyOrders = () => {
                     <RotateCcw className="h-4 w-4" />
                   )}
                   <span>{returnLoading ? 'Submitting...' : 'Submit Return Request'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation & Refund Submission Modal */}
+      {showCancelModal && selectedCancelOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-lg rounded-2xl p-6 border border-slate-200 dark:border-slate-850 bg-white dark:bg-[#0f172a] shadow-2xl relative space-y-6 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowCancelModal(false)}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div>
+              <div className="flex items-center gap-2 text-red-500 font-bold text-lg">
+                <X className="h-5 w-5" />
+                <h3>Cancel Order Request</h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Order #{selectedCancelOrder._id.substring(0, 12)} • Total: ₹{selectedCancelOrder.totalAmount}
+              </p>
+            </div>
+
+            {/* Online paid alert */}
+            {(selectedCancelOrder.paymentStatus === 'paid' || selectedCancelOrder.paymentMethod === 'ONLINE') ? (
+              <div className="rounded-xl bg-blue-500/10 p-3.5 text-xs text-blue-700 dark:text-blue-300 border border-blue-500/20 space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <CheckCircle className="h-4 w-4 text-blue-500" />
+                  <span>Online Payment Refund (₹{selectedCancelOrder.totalAmount})</span>
+                </div>
+                <p className="text-[11px] opacity-90">
+                  Please submit your UPI ID or Bank details below. Your refund will be processed to this destination.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-slate-500/10 p-3 text-xs text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                <span>This order was placed as Cash on Delivery. No refund is required.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCancelSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-650 dark:text-slate-355 mb-2">
+                  Select Reason for Cancellation *
+                </label>
+                <select
+                  value={cancelReasonPreset}
+                  onChange={(e) => setCancelReasonPreset(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                >
+                  <option value="Ordered by mistake">Ordered by mistake</option>
+                  <option value="Found a better price elsewhere">Found a better price elsewhere</option>
+                  <option value="Delay in delivery expectation">Delay in delivery expectation</option>
+                  <option value="Incorrect shipping address">Incorrect shipping address</option>
+                  <option value="Changed mind">Changed mind</option>
+                  <option value="Other reason">Other reason</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-650 dark:text-slate-355 mb-2">
+                  Additional Comments (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={cancelReasonDetails}
+                  onChange={(e) => setCancelReasonDetails(e.target.value)}
+                  placeholder="Optional details..."
+                  className="block w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a]/50 px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Refund Destination Form for Online Paid Orders */}
+              {(selectedCancelOrder.paymentStatus === 'paid' || selectedCancelOrder.paymentMethod === 'ONLINE') && (
+                <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    Refund Payout Method *
+                  </label>
+
+                  {/* Mode selector */}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCancelRefundMethod('upi')}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                        cancelRefundMethod === 'upi'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                          : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      UPI ID (Instant)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCancelRefundMethod('bank_transfer')}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                        cancelRefundMethod === 'bank_transfer'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                          : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      Bank Account
+                    </button>
+                  </div>
+
+                  {cancelRefundMethod === 'upi' ? (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        UPI ID / VPA *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. mobile@upi or username@oksbi"
+                        value={cancelUpiId}
+                        onChange={(e) => setCancelUpiId(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Account Holder Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Name as per Bank records"
+                          value={cancelAccountHolder}
+                          onChange={(e) => setCancelAccountHolder(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Bank Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. State Bank of India / HDFC Bank"
+                          value={cancelBankName}
+                          onChange={(e) => setCancelBankName(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                            Account Number *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Account Number"
+                            value={cancelAccountNumber}
+                            onChange={(e) => setCancelAccountNumber(e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                            Confirm A/C Number *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Confirm Account"
+                            value={cancelConfirmAccount}
+                            onChange={(e) => setCancelConfirmAccount(e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          IFSC Code *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. SBIN0001234"
+                          value={cancelIfsc}
+                          onChange={(e) => setCancelIfsc(e.target.value.toUpperCase())}
+                          className="w-full uppercase rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 rounded-lg bg-slate-105 dark:bg-slate-900 border border-slate-250 dark:border-slate-850 py-2.5 text-center text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-850 transition-colors"
+                >
+                  Don't Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancelLoading}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2.5 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition-colors shadow-lg shadow-red-500/20"
+                >
+                  {cancelLoading ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <X className="h-4 w-4" />
+                  )}
+                  <span>{cancelLoading ? 'Processing...' : 'Confirm Cancellation'}</span>
                 </button>
               </div>
             </form>
