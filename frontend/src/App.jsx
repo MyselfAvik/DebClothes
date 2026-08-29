@@ -13,6 +13,7 @@ import ProductDetail from './pages/customer/ProductDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import DeleteAccount from './pages/DeleteAccount';
 
 // Customer Pages
 import Profile from './pages/customer/Profile';
@@ -47,6 +48,9 @@ function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/delete-account" element={<DeleteAccount />} />
+                  <Route path="/account-deletion" element={<DeleteAccount />} />
+                  <Route path="/data-deletion" element={<DeleteAccount />} />
 
                   {/* Customer Protected Routes */}
                   <Route
