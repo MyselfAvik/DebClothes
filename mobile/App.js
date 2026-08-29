@@ -143,11 +143,19 @@ function AppContent() {
   const isAdmin = user && user.role === 'admin';
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        {
+          backgroundColor: layout === 'auth' ? (isDark ? '#07070d' : '#fbfaff') : colors.background,
+          paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0,
+        },
+      ]}
+    >
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={layout === 'auth' ? 'transparent' : colors.card}
-        translucent={layout === 'auth'}
+        backgroundColor={layout === 'auth' ? (isDark ? '#07070d' : '#fbfaff') : colors.card}
+        translucent={false}
       />
 
 
@@ -392,12 +400,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabBar: {
-    height: 60,
+    height: Platform.OS === 'ios' ? 76 : 64,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     borderTopWidth: 1,
-    paddingBottom: 4,
+    paddingTop: 6,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
   },
   tabItem: {
     alignItems: 'center',
