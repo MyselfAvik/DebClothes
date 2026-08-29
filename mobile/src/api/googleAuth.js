@@ -15,12 +15,11 @@ const discovery = {
 const DEFAULT_CLIENT_ID = '32943367466-bpa08tvu384tpvlr1vmk6etatkfkkjce.apps.googleusercontent.com';
 
 /**
- * Initiates the real Google OAuth 2.0 flow using system browser / custom tabs
- * Returns the Google ID token or Access token to be verified by backend
+ * Initiates standard Google OAuth 2.0 PKCE Authorization Code flow
+ * Compliant with Google's modern security policy
  */
 export const promptGoogleOAuthAsync = async () => {
   try {
-    // 1. Attempt to fetch configured Client ID from backend
     let clientId = DEFAULT_CLIENT_ID;
     try {
       const { data } = await API.get('/api/config/google-client-id');
@@ -31,49 +30,67 @@ export const promptGoogleOAuthAsync = async () => {
       console.log('Using default Google client ID:', DEFAULT_CLIENT_ID);
     }
 
-    // 2. Generate redirect URI matching Google Cloud Console authorized URIs
+    // Generate redirect URI matching Google Cloud Console authorized URIs
     const redirectUri = AuthSession.makeRedirectUri({
       scheme: 'debclothes',
       useProxy: true,
       preferLocalhost: false,
     });
-    console.log('[Google OAuth] Generated Redirect URI:', redirectUri);
+    console.log('[Google OAuth] Using Redirect URI:', redirectUri);
 
-    // 3. Create Google OAuth Request (usePKCE: false is required for ResponseType.Token on Google OAuth)
+    // Create Authorization Code request with PKCE (standard for Google OAuth)
     const request = new AuthSession.AuthRequest({
       clientId,
       scopes: ['openid', 'profile', 'email'],
-      responseType: AuthSession.ResponseType.Token, // Returns real Google access_token
-      usePKCE: false,
+      responseType: AuthSession.ResponseType.Code,
+      usePKCE: true,
       redirectUri,
       extraParams: {
         prompt: 'select_account',
       },
     });
 
-    // 4. Prompt user to authenticate in real Google browser dialog
     const result = await request.promptAsync(discovery);
 
-    if (result.type === 'success') {
-      const token = result.params?.access_token || result.params?.id_token;
-      if (!token) {
-        return { success: false, error: 'No token returned by Google' };
+    if (result.type === 'success' && result.params?.code) {
+      // Exchange Authorization Code for Access / ID Token using PKCE
+      try {
+        const tokenResult = await AuthSession.exchangeCodeAsync(
+          {
+            clientId,
+            code: result.params.code,
+            redirectUri,
+            extraParams: {
+              code_verifier: request.codeVerifier,
+            },
+          },
+          discovery
+        );
+
+        const token = tokenResult.idToken || tokenResult.accessToken;
+        if (!token) {
+          return { success: false, error: 'Failed to retrieve auth token from Google' };
+        }
+        return { success: true, token };
+      } catch (exchangeErr) {
+        console.error('[Google OAuth] Token exchange error:', exchangeErr);
+        // Fallback: send code to backend
+        return { success: true, token: result.params.code, isCode: true };
       }
-      return { success: true, token };
     } else if (result.type === 'cancel' || result.type === 'dismiss') {
       return { success: false, cancelled: true };
     } else {
       console.warn('[Google OAuth] Auth session result:', result);
       return {
         success: false,
-        error: result.error?.message || `Google OAuth redirect mismatch. Add ${redirectUri} to Google Cloud Console Authorized Redirect URIs.`,
+        error: result.error?.message || result.params?.error_description || 'Google authorization could not be completed.',
       };
     }
   } catch (error) {
     console.error('[Google OAuth] Error:', error);
     return {
       success: false,
-      error: error.message || 'An error occurred during Google sign-in. Use Sandbox Accounts on emulators.',
+      error: error.message || 'An error occurred during Google sign-in.',
     };
   }
 };

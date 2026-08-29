@@ -156,14 +156,25 @@ function AppContent() {
       style={[
         styles.safeArea,
         {
-          backgroundColor: layout === 'auth' ? (isDark ? '#07070d' : '#fbfaff') : colors.background,
+          backgroundColor:
+            layout === 'auth'
+              ? isDark ? '#07070d' : '#fbfaff'
+              : currentScreen === 'HOME'
+              ? isDark ? '#131122' : '#7c3aed'
+              : colors.background,
           paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0,
         },
       ]}
     >
       <StatusBar
-        barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={layout === 'auth' ? (isDark ? '#07070d' : '#fbfaff') : colors.card}
+        barStyle={currentScreen === 'HOME' || layout === 'auth' ? 'light-content' : isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={
+          layout === 'auth'
+            ? isDark ? '#07070d' : '#fbfaff'
+            : currentScreen === 'HOME'
+            ? isDark ? '#131122' : '#7c3aed'
+            : colors.card
+        }
         translucent={false}
       />
 
