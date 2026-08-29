@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, StatusBar, ActivityIndicator, Platform } from 'react-native';
 import {
   useFonts,
   Outfit_400Regular,
