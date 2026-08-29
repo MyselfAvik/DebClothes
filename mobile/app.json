@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "com.asora.debclothes",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#fbfaf8",
         "foregroundImage": "./assets/android-icon-foreground.png",
