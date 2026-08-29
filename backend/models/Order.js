@@ -109,8 +109,19 @@ const orderSchema = new mongoose.Schema({
       photos: [{ type: String }],
       requestedAt: { type: Date },
       adminComment: { type: String, default: '' },
+      refundMethod: { type: String, enum: ['upi', 'bank_transfer'], default: 'upi' },
+      upiId: { type: String, default: '' },
+      bankDetails: {
+        accountHolderName: { type: String, default: '' },
+        accountNumber: { type: String, default: '' },
+        ifscCode: { type: String, default: '' },
+        bankName: { type: String, default: '' },
+      },
     },
     default: undefined,
+  },
+  expectedDeliveryDate: {
+    type: Date,
   },
   statusHistory: [statusHistorySchema],
   shippingNotes: {

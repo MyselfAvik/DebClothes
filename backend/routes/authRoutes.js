@@ -8,7 +8,9 @@ import {
   resendOtp,
   getMe,
   addAddress,
+  updateAddress,
   deleteAddress,
+  changePassword,
   requestChangePasswordOtp,
   verifyChangePasswordOtp,
   getAllUsers,
@@ -32,9 +34,11 @@ router.put('/users/:id/role', verifyToken, isAdmin, updateUserRole);
 
 // Address Management Routes
 router.post('/addresses', verifyToken, addAddress);
+router.put('/addresses/:id', verifyToken, updateAddress);
 router.delete('/addresses/:id', verifyToken, deleteAddress);
 
-// Password Change via OTP Routes
+// Password Change Routes (Direct with current password + OTP fallback)
+router.put('/change-password', verifyToken, changePassword);
 router.post('/change-password-request-otp', verifyToken, requestChangePasswordOtp);
 router.post('/change-password-verify-otp', verifyToken, verifyChangePasswordOtp);
 

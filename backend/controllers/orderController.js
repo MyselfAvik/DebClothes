@@ -77,6 +77,9 @@ export const createOrder = async (req, res, next) => {
     }
 
     // Step 4: Create local Order document
+    const expectedDelivery = new Date();
+    expectedDelivery.setDate(expectedDelivery.getDate() + 4); // 4 days delivery window
+
     const order = new Order({
       user: req.user._id,
       items: orderItems,
@@ -86,6 +89,7 @@ export const createOrder = async (req, res, next) => {
       paymentStatus: 'pending', 
       paymentId: paymentId,
       orderStatus: 'placed',
+      expectedDeliveryDate: expectedDelivery,
       statusHistory: [{
         status: 'placed',
         message: paymentMethod === 'RAZORPAY'
@@ -202,7 +206,20 @@ export const updateOrderStatus = async (req, res, next) => {
           }
         }
       }
-      order.paymentStatus = 'failed';
+      if (order.paymentStatus === 'paid') {
+        order.paymentStatus = 'refunded';
+        if (order.paymentId && order.paymentId.startsWith('pay_')) {
+          try {
+            await razorpayInstance.payments.refund(order.paymentId, {
+              amount: Math.round(order.totalAmount * 100)
+            });
+          } catch (err) {
+            console.log('Razorpay Refund failed during admin cancel:', err.message);
+          }
+        }
+      } else {
+        order.paymentStatus = 'failed';
+      }
     }
 
     // If status becomes delivered, record delivery timestamp & set payment status to paid
@@ -265,10 +282,39 @@ export const updateOrderStatus = async (req, res, next) => {
 // @access  Private (Customer)
 export const requestReturnOrder = async (req, res, next) => {
   try {
-    const { reason } = req.body;
+    const {
+      reason,
+      refundMethod = 'upi',
+      upiId,
+      accountHolderName,
+      accountNumber,
+      ifscCode,
+      bankName,
+    } = req.body;
+
     if (!reason || !reason.trim()) {
       res.status(400);
       throw new Error('Please provide a reason for the return');
+    }
+
+    if (refundMethod === 'upi') {
+      if (!upiId || !upiId.trim() || !upiId.includes('@')) {
+        res.status(400);
+        throw new Error('Please provide a valid UPI ID (e.g. yourname@oksbi / user@upi) for refund credit');
+      }
+    } else if (refundMethod === 'bank_transfer') {
+      if (!accountHolderName || !accountHolderName.trim()) {
+        res.status(400);
+        throw new Error('Please provide Account Holder Name for bank refund');
+      }
+      if (!accountNumber || !accountNumber.trim() || accountNumber.trim().length < 6) {
+        res.status(400);
+        throw new Error('Please provide a valid Bank Account Number for refund');
+      }
+      if (!ifscCode || !ifscCode.trim() || ifscCode.trim().length < 6) {
+        res.status(400);
+        throw new Error('Please provide a valid IFSC Code for refund');
+      }
     }
 
     const order = await Order.findById(req.params.id);
@@ -314,12 +360,29 @@ export const requestReturnOrder = async (req, res, next) => {
       reason,
       photos: photoUrls,
       requestedAt: new Date(),
-      adminComment: ''
+      adminComment: '',
+      refundMethod: refundMethod === 'bank_transfer' ? 'bank_transfer' : 'upi',
+      upiId: refundMethod === 'upi' ? upiId.trim() : '',
+      bankDetails: refundMethod === 'bank_transfer' ? {
+        accountHolderName: (accountHolderName || '').trim(),
+        accountNumber: (accountNumber || '').trim(),
+        ifscCode: (ifscCode || '').trim().toUpperCase(),
+        bankName: (bankName || '').trim(),
+      } : {
+        accountHolderName: '',
+        accountNumber: '',
+        ifscCode: '',
+        bankName: '',
+      },
     };
+
+    const refundDestinationSummary = refundMethod === 'upi' 
+      ? `UPI: ${upiId.trim()}`
+      : `Bank: ${bankName ? bankName.trim() + ' ' : ''}A/C ****${(accountNumber || '').trim().slice(-4)}`;
 
     order.statusHistory.push({
       status: 'return_requested',
-      message: `Customer initiated return request. Reason: ${reason}`
+      message: `Customer initiated return & refund request to ${refundDestinationSummary}. Reason: ${reason}`
     });
 
     const updatedOrder = await order.save();
@@ -435,6 +498,26 @@ export const handlePaymentFailure = async (req, res, next) => {
       }
     }
 
+    // Restore cart items since checkout failed
+    const cart = await Cart.findOne({ user: order.user });
+    if (cart) {
+      for (const item of order.items) {
+        const itemExistsIdx = cart.items.findIndex(
+          i => i.product.toString() === item.product.toString() && i.size === item.size
+        );
+        if (itemExistsIdx > -1) {
+          cart.items[itemExistsIdx].qty += item.qty;
+        } else {
+          cart.items.push({
+            product: item.product,
+            size: item.size,
+            qty: item.qty
+          });
+        }
+      }
+      await cart.save();
+    }
+
     order.paymentStatus = 'failed';
     order.orderStatus = 'cancelled';
     order.statusHistory.push({
@@ -495,6 +578,15 @@ export const cancelMyOrder = async (req, res, next) => {
     order.orderStatus = 'cancelled';
     if (order.paymentStatus === 'paid') {
       order.paymentStatus = 'refunded';
+      if (order.paymentId && order.paymentId.startsWith('pay_')) {
+        try {
+          await razorpayInstance.payments.refund(order.paymentId, {
+            amount: Math.round(order.totalAmount * 100)
+          });
+        } catch (err) {
+          console.log('Razorpay Refund failed during customer cancel:', err.message);
+        }
+      }
     } else {
       order.paymentStatus = 'failed';
     }

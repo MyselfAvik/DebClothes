@@ -152,6 +152,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateAddress = async (addressId, addressData) => {
+    setError(null);
+    try {
+      const { data } = await API.put(`/api/auth/addresses/${addressId}`, addressData);
+      const updatedUser = { ...data, token: user.token };
+      setUser(updatedUser);
+      localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update address');
+      throw err;
+    }
+  };
+
   const deleteAddress = async (addressId) => {
     setError(null);
     try {
@@ -209,6 +223,7 @@ export const AuthProvider = ({ children }) => {
         verifyLoginOtp,
         resendOtp,
         addAddress,
+        updateAddress,
         deleteAddress,
         requestChangePasswordOtp,
         verifyChangePasswordOtp,
