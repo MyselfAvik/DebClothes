@@ -12,7 +12,7 @@ const discovery = {
   revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
 };
 
-const DEFAULT_CLIENT_ID = '32943367466-lo67273e44kko5sqet381g37gv1fkqsm.apps.googleusercontent.com';
+const DEFAULT_CLIENT_ID = '32943367466-bpa08tvu384tpvlr1vmk6etatkfkkjce.apps.googleusercontent.com';
 
 /**
  * Initiates the real Google OAuth 2.0 flow using system browser / custom tabs
