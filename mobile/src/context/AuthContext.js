@@ -226,6 +226,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    setError(null);
+    try {
+      const { data } = await API.delete('/api/auth/account');
+      await logout();
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to delete account';
+      setError(msg);
+      throw err;
+    }
+  };
+
   const logout = async () => {
     setUser(null);
     await AsyncStorage.removeItem('userInfo');
@@ -252,6 +265,7 @@ export const AuthProvider = ({ children }) => {
         changePassword,
         requestChangePasswordOtp,
         verifyChangePasswordOtp,
+        deleteAccount,
         logout,
         clearError,
       }}

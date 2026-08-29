@@ -50,6 +50,7 @@ export default function ProfileScreen() {
     changePassword,
     requestChangePasswordOtp,
     verifyChangePasswordOtp,
+    deleteAccount,
   } = useAuth();
   const { colors, themeMode, toggleTheme, isDark } = useAppTheme();
   const { resetTo, navigateTo } = useAppNavigation();
@@ -297,6 +298,30 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account & Data',
+      'Are you sure you want to permanently delete your account, addresses, and all personal data? This action is irreversible.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Permanently Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              showToast('Deleting account and data...', 'info');
+              await deleteAccount();
+              showToast('Your account has been permanently deleted.', 'success');
+              navigateTo('HOME');
+            } catch (err) {
+              showToast(err.response?.data?.message || err.message || 'Failed to delete account.', 'error');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Profile Header */}
@@ -370,10 +395,10 @@ export default function ProfileScreen() {
 
       {/* Security & Password Section */}
       <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>Account Security</Text>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Account Security & Data</Text>
         
         <TouchableOpacity
-          style={styles.settingRow}
+          style={[styles.settingRow, { borderBottomColor: colors.border }]}
           onPress={() => {
             resetPasswordState();
             setShowPasswordModal(true);
@@ -387,6 +412,24 @@ export default function ProfileScreen() {
               <Text style={[styles.settingLabel, { color: colors.text, marginLeft: 0 }]}>Change Password</Text>
               <Text style={[styles.settingSubLabel, { color: colors.textSecondary }]}>
                 Update current password or reset via OTP
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={handleDeleteAccount}
+        >
+          <View style={styles.settingLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+              <Trash2 size={18} color="#ef4444" />
+            </View>
+            <View style={{ marginLeft: 12 }}>
+              <Text style={[styles.settingLabel, { color: '#ef4444', marginLeft: 0 }]}>Delete My Account</Text>
+              <Text style={[styles.settingSubLabel, { color: colors.textSecondary }]}>
+                Permanently erase account & all personal data
               </Text>
             </View>
           </View>
