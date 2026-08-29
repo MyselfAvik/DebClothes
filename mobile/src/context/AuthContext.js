@@ -15,15 +15,25 @@ export const AuthProvider = ({ children }) => {
         const storedUserInfo = await AsyncStorage.getItem('userInfo');
         if (storedUserInfo) {
           const parsedUser = JSON.parse(storedUserInfo);
-          // Verify with backend if token is still valid
-          const { data } = await API.get('/api/auth/me');
-          // Keep token in the state object
-          setUser({ ...data, token: parsedUser.token });
+          // Set user immediately from cache so app opens instantly
+          setUser(parsedUser);
+          setLoading(false);
+
+          // Verify token in background silently
+          try {
+            const { data } = await API.get('/api/auth/me', { timeout: 10000 });
+            setUser({ ...data, token: parsedUser.token });
+          } catch (verifyErr) {
+            if (verifyErr.response?.status === 401) {
+              console.log('Session expired, logging out');
+              await logout();
+            }
+          }
+        } else {
+          setLoading(false);
         }
       } catch (err) {
-        console.error('Failed to verify token, logging out:', err);
-        await logout();
-      } finally {
+        console.error('Error loading stored user:', err);
         setLoading(false);
       }
     };
