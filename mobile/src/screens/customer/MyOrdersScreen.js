@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
-import API from '../../api/api';
+import API, { uploadMultipartAsync } from '../../api/api';
 import {
   Package,
   Calendar,
@@ -206,7 +206,7 @@ export default function MyOrdersScreen() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -222,7 +222,7 @@ export default function MyOrdersScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -239,7 +239,7 @@ export default function MyOrdersScreen() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -255,7 +255,7 @@ export default function MyOrdersScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -276,18 +276,20 @@ export default function MyOrdersScreen() {
     formData.append('comment', reviewComment.trim());
 
     if (reviewPhoto) {
-      const filename = reviewPhoto.split('/').pop() || `review_${Date.now()}.jpg`;
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image/jpeg`;
+      const rawFilename = reviewPhoto.split('/').pop() || `review_${Date.now()}.jpg`;
+      const match = /\.(\w+)$/.exec(rawFilename);
+      const ext = match ? match[1].toLowerCase() : 'jpg';
+      const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+      const cleanFilename = rawFilename.includes('.') ? rawFilename : `${rawFilename}.${ext}`;
       formData.append('images', {
         uri: reviewPhoto,
-        name: filename,
+        name: cleanFilename,
         type: type,
       });
     }
 
     try {
-      await API.post(`/api/products/${reviewProduct._id}/reviews`, formData);
+      await uploadMultipartAsync(`/api/products/${reviewProduct._id}/reviews`, formData, 'POST');
       showToast('Review submitted successfully!', 'success');
       setReviewProduct(null);
       setReviewComment('');
@@ -295,7 +297,7 @@ export default function MyOrdersScreen() {
       setReviewPhoto(null);
       fetchMyOrders();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to submit review.', 'error');
+      showToast(err.response?.data?.message || err.message || 'Failed to submit review.', 'error');
     } finally {
       setSubmittingReview(false);
     }
@@ -449,17 +451,19 @@ export default function MyOrdersScreen() {
         formData.append('ifscCode', bankIfsc.trim().toUpperCase());
       }
 
-      const filename = returnPhoto.split('/').pop() || `return_${Date.now()}.jpg`;
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      const rawFilename = returnPhoto.split('/').pop() || `return_${Date.now()}.jpg`;
+      const match = /\.(\w+)$/.exec(rawFilename);
+      const ext = match ? match[1].toLowerCase() : 'jpg';
+      const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+      const cleanFilename = rawFilename.includes('.') ? rawFilename : `${rawFilename}.${ext}`;
 
       formData.append('images', {
         uri: returnPhoto,
-        name: filename,
+        name: cleanFilename,
         type: type,
       });
 
-      await API.post(`/api/orders/${returningOrder.orderId}/return`, formData);
+      await uploadMultipartAsync(`/api/orders/${returningOrder.orderId}/return`, formData, 'POST');
 
       showToast('Return request with refund details submitted successfully!', 'success');
       handleCloseReturnModal();
@@ -468,7 +472,7 @@ export default function MyOrdersScreen() {
       }
       fetchMyOrders();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to submit return request.', 'error');
+      showToast(err.response?.data?.message || err.message || 'Failed to submit return request.', 'error');
     } finally {
       setSubmittingReturn(false);
     }

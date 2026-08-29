@@ -15,7 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAppNavigation } from '../../context/NavigationContext';
 import { useToast } from '../../context/ToastContext';
-import API from '../../api/api';
+import API, { uploadMultipartAsync } from '../../api/api';
 import { Save, ArrowLeft, Plus, X, Camera, Image as ImageIcon } from 'lucide-react-native';
 
 const SIZE_LABELS = ['S', 'M', 'L', 'XL', 'XXL', 'Free'];
@@ -115,7 +115,7 @@ export default function AddEditProduct() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
 
@@ -134,7 +134,7 @@ export default function AddEditProduct() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
 
@@ -185,15 +185,17 @@ export default function AddEditProduct() {
 
     // Handle images array mapping
     const remoteImages = [];
-    imagesList.forEach((img) => {
+    imagesList.forEach((img, idx) => {
       const isLocal = img.startsWith('file://') || img.startsWith('content://');
       if (isLocal) {
-        const filename = img.split('/').pop() || `photo_${Date.now()}.jpg`;
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : `image/jpeg`;
+        const rawFilename = img.split('/').pop() || `photo_${Date.now()}_${idx}.jpg`;
+        const match = /\.(\w+)$/.exec(rawFilename);
+        const ext = match ? match[1].toLowerCase() : 'jpg';
+        const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        const cleanFilename = rawFilename.includes('.') ? rawFilename : `${rawFilename}.${ext}`;
         formData.append('images', {
           uri: img,
-          name: filename,
+          name: cleanFilename,
           type: type,
         });
       } else {
@@ -203,17 +205,16 @@ export default function AddEditProduct() {
 
     try {
       if (isEditMode) {
-        // For editing: append currently kept remote image URLs
         formData.append('existingImages', JSON.stringify(remoteImages));
-        await API.put(`/api/products/${productId}`, formData);
+        await uploadMultipartAsync(`/api/products/${productId}`, formData, 'PUT');
         showToast('Product updated successfully.', 'success');
       } else {
-        await API.post('/api/products', formData);
+        await uploadMultipartAsync('/api/products', formData, 'POST');
         showToast('Product created successfully.', 'success');
       }
       goBack();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to save product.', 'error');
+      showToast(err.response?.data?.message || err.message || 'Failed to save product.', 'error');
     } finally {
       setSaving(false);
     }
