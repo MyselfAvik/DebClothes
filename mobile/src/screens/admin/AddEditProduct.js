@@ -205,14 +205,10 @@ export default function AddEditProduct() {
       if (isEditMode) {
         // For editing: append currently kept remote image URLs
         formData.append('existingImages', JSON.stringify(remoteImages));
-        await API.put(`/api/products/${productId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        await API.put(`/api/products/${productId}`, formData);
         showToast('Product updated successfully.', 'success');
       } else {
-        await API.post('/api/products', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        await API.post('/api/products', formData);
         showToast('Product created successfully.', 'success');
       }
       goBack();

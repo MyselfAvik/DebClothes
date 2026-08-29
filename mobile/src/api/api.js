@@ -17,7 +17,7 @@ const API = axios.create({
   timeout: 45000,
 });
 
-// Request interceptor to automatically add token
+// Request interceptor to automatically add token and handle FormData multipart boundaries
 API.interceptors.request.use(
   async (config) => {
     try {
@@ -31,6 +31,13 @@ API.interceptors.request.use(
     } catch (error) {
       console.error('Error fetching token from AsyncStorage', error);
     }
+
+    // Auto-detect FormData and remove Content-Type so React Native / Axios sets boundary correctly
+    if (config.data instanceof FormData || (config.data && typeof config.data.getParts === 'function')) {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
+
     return config;
   },
   (error) => {

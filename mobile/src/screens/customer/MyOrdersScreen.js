@@ -287,9 +287,7 @@ export default function MyOrdersScreen() {
     }
 
     try {
-      await API.post(`/api/products/${reviewProduct._id}/reviews`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await API.post(`/api/products/${reviewProduct._id}/reviews`, formData);
       showToast('Review submitted successfully!', 'success');
       setReviewProduct(null);
       setReviewComment('');
@@ -461,11 +459,7 @@ export default function MyOrdersScreen() {
         type: type,
       });
 
-      await API.post(`/api/orders/${returningOrder.orderId}/return`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      await API.post(`/api/orders/${returningOrder.orderId}/return`, formData);
 
       showToast('Return request with refund details submitted successfully!', 'success');
       handleCloseReturnModal();
