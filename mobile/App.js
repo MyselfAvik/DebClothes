@@ -406,13 +406,13 @@ const styles = StyleSheet.create({
   },
   splashTitle: {
     fontSize: 24,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 2,
   },
   splashSubtitle: {
     fontSize: 13,
     marginTop: 6,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   header: {
     height: 56,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 1.5,
   },
   headerActions: {
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   },
   adminToggleText: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 4,
   },
   body: {
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 10,
     marginTop: 4,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   badge: {
     position: 'absolute',
@@ -484,6 +484,6 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#fff',
     fontSize: 9,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_800ExtraBold',
   },
 });

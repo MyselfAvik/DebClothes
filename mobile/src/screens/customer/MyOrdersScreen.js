@@ -199,68 +199,94 @@ export default function MyOrdersScreen() {
   };
 
   const handleReturnSelectGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      showToast('Permission to access gallery is required.', 'warning');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setReturnPhoto(result.assets[0].uri);
-      showToast('Proof photo attached successfully!', 'success');
+    try {
+      if (Platform.OS === 'ios') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          showToast('Permission to access gallery is required.', 'warning');
+          return;
+        }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setReturnPhoto(result.assets[0].uri);
+        showToast('Proof photo attached successfully!', 'success');
+      }
+    } catch (err) {
+      console.error('Return gallery error:', err);
+      showToast('Could not open gallery: ' + (err.message || 'Error'), 'error');
     }
   };
 
   const handleReturnTakePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      showToast('Permission to access camera is required.', 'warning');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setReturnPhoto(result.assets[0].uri);
-      showToast('Proof photo captured successfully!', 'success');
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        showToast('Permission to access camera is required.', 'warning');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setReturnPhoto(result.assets[0].uri);
+        showToast('Proof photo captured successfully!', 'success');
+      }
+    } catch (err) {
+      console.error('Return camera error:', err);
+      showToast('Could not open camera: ' + (err.message || 'Error'), 'error');
     }
   };
 
   const handleReviewSelectGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      showToast('Permission to access gallery is required.', 'warning');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setReviewPhoto(result.assets[0].uri);
-      showToast('Photo attached to review!', 'success');
+    try {
+      if (Platform.OS === 'ios') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          showToast('Permission to access gallery is required.', 'warning');
+          return;
+        }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setReviewPhoto(result.assets[0].uri);
+        showToast('Photo attached to review!', 'success');
+      }
+    } catch (err) {
+      console.error('Review gallery error:', err);
+      showToast('Could not open gallery: ' + (err.message || 'Error'), 'error');
     }
   };
 
   const handleReviewTakePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      showToast('Permission to access camera is required.', 'warning');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setReviewPhoto(result.assets[0].uri);
-      showToast('Photo captured!', 'success');
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        showToast('Permission to access camera is required.', 'warning');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setReviewPhoto(result.assets[0].uri);
+        showToast('Photo captured!', 'success');
+      }
+    } catch (err) {
+      console.error('Review camera error:', err);
+      showToast('Could not open camera: ' + (err.message || 'Error'), 'error');
     }
   };
 
@@ -611,10 +637,10 @@ export default function MyOrdersScreen() {
               </Text>
               <View style={styles.productMetaRow}>
                 <Text style={[styles.productMetaText, { color: colors.textSecondary }]}>
-                  Size: <Text style={{ fontWeight: '700', color: colors.text }}>{item.size}</Text>
+                  Size: <Text style={{ fontFamily: 'Outfit_700Bold', color: colors.text }}>{item.size}</Text>
                 </Text>
                 <Text style={[styles.productMetaText, { color: colors.textSecondary, marginLeft: 12 }]}>
-                  Qty: <Text style={{ fontWeight: '700', color: colors.text }}>{item.qty}</Text>
+                  Qty: <Text style={{ fontFamily: 'Outfit_700Bold', color: colors.text }}>{item.qty}</Text>
                 </Text>
               </View>
               <View style={styles.priceRow}>
@@ -647,11 +673,11 @@ export default function MyOrdersScreen() {
 
             {item.cancellationDetails?.reason ? (
               <Text style={[styles.refundPendingDesc, { color: isDark ? '#cbd5e1' : '#78350f' }]}>
-                Reason: <Text style={{ fontWeight: '700' }}>{item.cancellationDetails.reason}</Text>
+                Reason: <Text style={{ fontFamily: 'Outfit_700Bold' }}>{item.cancellationDetails.reason}</Text>
               </Text>
             ) : item.returnDetails?.reason ? (
               <Text style={[styles.refundPendingDesc, { color: isDark ? '#cbd5e1' : '#78350f' }]}>
-                Return Reason: <Text style={{ fontWeight: '700' }}>{item.returnDetails.reason}</Text>
+                Return Reason: <Text style={{ fontFamily: 'Outfit_700Bold' }}>{item.returnDetails.reason}</Text>
               </Text>
             ) : null}
 
@@ -660,7 +686,7 @@ export default function MyOrdersScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                 <Smartphone size={13} color="#d97706" style={{ marginRight: 5 }} />
                 <Text style={[styles.refundPendingDestText, { color: isDark ? '#f1f5f9' : '#451a03' }]}>
-                  Destination: <Text style={{ fontWeight: '800' }}>UPI ({item.cancellationDetails?.upiId || item.returnDetails?.upiId})</Text>
+                  Destination: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>UPI ({item.cancellationDetails?.upiId || item.returnDetails?.upiId})</Text>
                 </Text>
               </View>
             ) : (item.cancellationDetails?.bankDetails?.accountNumber || item.returnDetails?.bankDetails?.accountNumber) ? (
@@ -668,7 +694,7 @@ export default function MyOrdersScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Building2 size={13} color="#d97706" style={{ marginRight: 5 }} />
                   <Text style={[styles.refundPendingDestText, { color: isDark ? '#f1f5f9' : '#451a03' }]}>
-                    Bank: <Text style={{ fontWeight: '800' }}>{item.cancellationDetails?.bankDetails?.bankName || item.returnDetails?.bankDetails?.bankName || 'Bank Transfer'}</Text>
+                    Bank: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>{item.cancellationDetails?.bankDetails?.bankName || item.returnDetails?.bankDetails?.bankName || 'Bank Transfer'}</Text>
                   </Text>
                 </View>
                 <Text style={[styles.refundPendingSubText, { color: isDark ? '#94a3b8' : '#92400e' }]}>
@@ -1021,7 +1047,7 @@ export default function MyOrdersScreen() {
                 <Text
                   style={[
                     styles.filterPillText,
-                    { color: active ? '#ffffff' : colors.textSecondary, fontWeight: active ? '800' : '600' },
+                    { color: active ? '#ffffff' : colors.textSecondary, fontFamily: active ? 'Outfit_800ExtraBold' : 'Outfit_600SemiBold' },
                   ]}
                 >
                   {pill.label}
@@ -1080,7 +1106,14 @@ export default function MyOrdersScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
+            <ScrollView
+              style={styles.modalScrollView}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+            >
               {selectedOrder && (
                 <>
                   {/* Expected Delivery & Current Situation Card */}
@@ -1097,7 +1130,7 @@ export default function MyOrdersScreen() {
                         </Text>
                         <Text style={[styles.situationSubtitle, { color: isDark ? '#94a3b8' : '#3b82f6' }]}>
                           Current Situation:{' '}
-                          <Text style={{ fontWeight: '750' }}>
+                          <Text style={{ fontFamily: 'Outfit_700Bold' }}>
                             {selectedOrder.shippingNotes ||
                               (selectedOrder.orderStatus === 'delivered'
                                 ? 'Package handed over to recipient'
@@ -1130,7 +1163,7 @@ export default function MyOrdersScreen() {
                         ₹{selectedOrder.priceAtPurchase}
                       </Text>
                       <Text style={[styles.detailSellerText, { color: colors.textSecondary }]}>
-                        Seller: <Text style={{ color: colors.primary, fontWeight: '700' }}>Deb Clothes India</Text>
+                        Seller: <Text style={{ color: colors.primary, fontFamily: 'Outfit_700Bold' }}>Deb Clothes India</Text>
                       </Text>
                     </View>
                   </View>
@@ -1161,7 +1194,7 @@ export default function MyOrdersScreen() {
                           <View style={styles.refundRow}>
                             <Smartphone size={16} color={colors.primary} style={{ marginRight: 8 }} />
                             <Text style={[styles.refundValText, { color: colors.text }]}>
-                              UPI ID: <Text style={{ fontWeight: '800' }}>{selectedOrder.returnDetails.upiId || 'Provided at request'}</Text>
+                              UPI ID: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>{selectedOrder.returnDetails.upiId || 'Provided at request'}</Text>
                             </Text>
                           </View>
                         ) : (
@@ -1169,7 +1202,7 @@ export default function MyOrdersScreen() {
                             <View style={styles.refundRow}>
                               <Building2 size={16} color={colors.primary} style={{ marginRight: 8 }} />
                               <Text style={[styles.refundValText, { color: colors.text }]}>
-                                Bank: <Text style={{ fontWeight: '800' }}>{selectedOrder.returnDetails.bankDetails?.bankName || 'Bank Transfer'}</Text>
+                                Bank: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>{selectedOrder.returnDetails.bankDetails?.bankName || 'Bank Transfer'}</Text>
                               </Text>
                             </View>
                             <Text style={[styles.refundSubDetail, { color: colors.textSecondary }]}>
@@ -1206,7 +1239,7 @@ export default function MyOrdersScreen() {
                           <View style={styles.refundRow}>
                             <Smartphone size={16} color={colors.primary} style={{ marginRight: 8 }} />
                             <Text style={[styles.refundValText, { color: colors.text }]}>
-                              UPI ID: <Text style={{ fontWeight: '800' }}>{selectedOrder.cancellationDetails.upiId}</Text>
+                              UPI ID: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>{selectedOrder.cancellationDetails.upiId}</Text>
                             </Text>
                           </View>
                         ) : (
@@ -1214,7 +1247,7 @@ export default function MyOrdersScreen() {
                             <View style={styles.refundRow}>
                               <Building2 size={16} color={colors.primary} style={{ marginRight: 8 }} />
                               <Text style={[styles.refundValText, { color: colors.text }]}>
-                                Bank: <Text style={{ fontWeight: '800' }}>{selectedOrder.cancellationDetails.bankDetails?.bankName || 'Bank Transfer'}</Text>
+                                Bank: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>{selectedOrder.cancellationDetails.bankDetails?.bankName || 'Bank Transfer'}</Text>
                               </Text>
                             </View>
                             <Text style={[styles.refundSubDetail, { color: colors.textSecondary }]}>
@@ -1248,7 +1281,7 @@ export default function MyOrdersScreen() {
                           {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} - {selectedOrder.shippingAddress?.pincode}
                         </Text>
                         <Text style={[styles.addressPhone, { color: colors.textSecondary, marginTop: 6 }]}>
-                          Phone: <Text style={{ fontWeight: '750', color: colors.text }}>{selectedOrder.shippingAddress?.phone}</Text>
+                          Phone: <Text style={{ fontFamily: 'Outfit_700Bold', color: colors.text }}>{selectedOrder.shippingAddress?.phone}</Text>
                         </Text>
                       </View>
                     </View>
@@ -1265,7 +1298,7 @@ export default function MyOrdersScreen() {
                     </View>
                     <View style={styles.priceLine}>
                       <Text style={[styles.priceLineLabel, { color: colors.textSecondary }]}>Delivery Fee</Text>
-                      <Text style={[styles.priceLineVal, { color: '#10b981', fontWeight: '800' }]}>FREE</Text>
+                      <Text style={[styles.priceLineVal, { color: '#10b981', fontFamily: 'Outfit_800ExtraBold' }]}>FREE</Text>
                     </View>
                     <View style={styles.priceLine}>
                       <Text style={[styles.priceLineLabel, { color: colors.textSecondary }]}>Payment Mode</Text>
@@ -1331,7 +1364,14 @@ export default function MyOrdersScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
+            <ScrollView
+              style={styles.modalScrollView}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+            >
               {returningOrder && (
                 <>
                   {/* Step 1: Select Reason */}
@@ -1353,7 +1393,7 @@ export default function MyOrdersScreen() {
                           <Text
                             style={[
                               styles.chipBtnText,
-                              { color: active ? '#ffffff' : colors.text, fontWeight: active ? '800' : '600' },
+                              { color: active ? '#ffffff' : colors.text, fontFamily: active ? 'Outfit_800ExtraBold' : 'Outfit_600SemiBold' },
                             ]}
                           >
                             {chip}
@@ -1567,7 +1607,14 @@ export default function MyOrdersScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
+            <ScrollView
+              style={styles.modalScrollView}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+            >
               {cancellingOrder && (
                 <>
                   {/* Notice for Online Paid vs COD */}
@@ -1616,7 +1663,7 @@ export default function MyOrdersScreen() {
                           <Text
                             style={[
                               styles.chipBtnText,
-                              { color: active ? '#ffffff' : colors.text, fontWeight: active ? '800' : '600' },
+                              { color: active ? '#ffffff' : colors.text, fontFamily: active ? 'Outfit_800ExtraBold' : 'Outfit_600SemiBold' },
                             ]}
                           >
                             {chip}
@@ -1797,7 +1844,14 @@ export default function MyOrdersScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
+            <ScrollView
+              style={styles.modalScrollView}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+            >
               {reviewProduct && (
                 <>
                   <View style={styles.reviewProductHeader}>
@@ -1920,7 +1974,7 @@ const styles = StyleSheet.create({
   },
   topHeaderTitle: {
     fontSize: 19,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 0.3,
   },
   orderCountBadge: {
@@ -1932,7 +1986,7 @@ const styles = StyleSheet.create({
   orderCountText: {
     color: '#2563eb',
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   searchBar: {
     flexDirection: 'row',
@@ -1946,6 +2000,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     height: '100%',
   },
   filterPillsScroll: {
@@ -1961,6 +2016,7 @@ const styles = StyleSheet.create({
   },
   filterPillText: {
     fontSize: 12,
+    fontFamily: 'Outfit_600SemiBold',
   },
   listContent: {
     padding: 12,
@@ -1991,10 +2047,11 @@ const styles = StyleSheet.create({
   },
   statusHeadingText: {
     fontSize: 13.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   statusSubText: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 1,
   },
   cardBodyRow: {
@@ -2014,7 +2071,7 @@ const styles = StyleSheet.create({
   },
   productTitle: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     lineHeight: 18,
     marginBottom: 4,
   },
@@ -2025,6 +2082,7 @@ const styles = StyleSheet.create({
   },
   productMetaText: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
   },
   priceRow: {
     flexDirection: 'row',
@@ -2032,7 +2090,7 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontSize: 15,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   assuredBadge: {
     flexDirection: 'row',
@@ -2045,7 +2103,7 @@ const styles = StyleSheet.create({
   },
   assuredBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     color: '#2563eb',
   },
   ratingPromptRow: {
@@ -2058,7 +2116,7 @@ const styles = StyleSheet.create({
   },
   ratingPromptLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   starsPromptRow: {
     flexDirection: 'row',
@@ -2085,7 +2143,7 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 11.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
   },
   center: {
     flex: 1,
@@ -2096,20 +2154,21 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   errorText: {
     textAlign: 'center',
     marginVertical: 10,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   emptyTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     textAlign: 'center',
   },
   modalOverlay: {
@@ -2119,14 +2178,23 @@ const styles = StyleSheet.create({
   },
   detailModalCard: {
     width: '100%',
-    maxHeight: '90%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    maxHeight: '92%',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
+    overflow: 'hidden',
+  },
+  modalScrollView: {
+    flexShrink: 1,
+    width: '100%',
+  },
+  modalScrollContent: {
+    padding: 16,
+    paddingBottom: 80,
   },
   detailHeader: {
     flexDirection: 'row',
@@ -2138,10 +2206,11 @@ const styles = StyleSheet.create({
   },
   detailHeaderTitle: {
     fontSize: 16,
-    fontWeight: '850',
+    fontFamily: 'Outfit_900Black',
   },
   detailHeaderSub: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   closeBtn: {
@@ -2159,16 +2228,17 @@ const styles = StyleSheet.create({
   },
   situationTitle: {
     fontSize: 14.5,
-    fontWeight: '850',
+    fontFamily: 'Outfit_900Black',
     marginBottom: 3,
   },
   situationSubtitle: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     lineHeight: 17,
   },
   sectionHeading: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginBottom: 10,
   },
   detailProductBox: {
@@ -2187,19 +2257,21 @@ const styles = StyleSheet.create({
   },
   detailProductTitle: {
     fontSize: 13.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
     lineHeight: 18,
   },
   detailProductMeta: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginVertical: 4,
   },
   detailProductPrice: {
     fontSize: 14.5,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   detailSellerText: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 4,
   },
   timelineCard: {
@@ -2239,10 +2311,11 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 13.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   stepSub: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
     lineHeight: 16,
   },
@@ -2254,7 +2327,7 @@ const styles = StyleSheet.create({
   },
   refundCardTitle: {
     fontSize: 14,
-    fontWeight: '850',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   refundRow: {
     flexDirection: 'row',
@@ -2263,14 +2336,17 @@ const styles = StyleSheet.create({
   },
   refundValText: {
     fontSize: 12.5,
+    fontFamily: 'Outfit_500Medium',
   },
   refundSubDetail: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginLeft: 24,
     marginTop: 2,
   },
   refundNotice: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 8,
     lineHeight: 16,
   },
@@ -2283,10 +2359,11 @@ const styles = StyleSheet.create({
   addressText: {
     fontSize: 13,
     lineHeight: 18,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   addressPhone: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
   },
   priceBreakdownBox: {
     borderRadius: 10,
@@ -2302,10 +2379,11 @@ const styles = StyleSheet.create({
   },
   priceLineLabel: {
     fontSize: 12.5,
+    fontFamily: 'Outfit_400Regular',
   },
   priceLineVal: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   totalLine: {
     borderTopWidth: 1,
@@ -2315,11 +2393,11 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    fontWeight: '850',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   totalVal: {
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   modalActionFullBtn: {
     height: 44,
@@ -2331,7 +2409,7 @@ const styles = StyleSheet.create({
   modalActionFullBtnText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -2348,12 +2426,14 @@ const styles = StyleSheet.create({
   },
   chipBtnText: {
     fontSize: 12,
+    fontFamily: 'Outfit_500Medium',
   },
   returnTextarea: {
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     height: 80,
     textAlignVertical: 'top',
     marginBottom: 10,
@@ -2374,7 +2454,7 @@ const styles = StyleSheet.create({
   },
   photoPickerBtnText: {
     fontSize: 11.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
   },
   returnPhotoPreviewBox: {
     width: 72,
@@ -2402,6 +2482,7 @@ const styles = StyleSheet.create({
   },
   refundSubtitle: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginBottom: 10,
   },
   refundTabsContainer: {
@@ -2427,14 +2508,14 @@ const styles = StyleSheet.create({
   },
   refundTabBtnText: {
     fontSize: 12.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
   },
   refundInputsGroup: {
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 12.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
     marginBottom: 5,
   },
   formInput: {
@@ -2443,9 +2524,11 @@ const styles = StyleSheet.create({
     height: 42,
     paddingHorizontal: 12,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
   },
   inputHelper: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 4,
   },
   modalActionButtonsRow: {
@@ -2464,7 +2547,7 @@ const styles = StyleSheet.create({
   },
   cancelModalBtnText: {
     fontSize: 13.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
   },
   submitModalBtn: {
     width: '58%',
@@ -2476,7 +2559,7 @@ const styles = StyleSheet.create({
   submitModalBtnText: {
     color: '#ffffff',
     fontSize: 13.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   reviewProductHeader: {
     flexDirection: 'row',
@@ -2494,7 +2577,7 @@ const styles = StyleSheet.create({
   reviewProductTitle: {
     flex: 1,
     fontSize: 13.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   reviewStarsRow: {
     flexDirection: 'row',
@@ -2509,10 +2592,11 @@ const styles = StyleSheet.create({
   },
   alertInfoTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   alertInfoSub: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
     lineHeight: 16,
   },
@@ -2524,7 +2608,7 @@ const styles = StyleSheet.create({
   },
   refundPendingCardTitle: {
     fontSize: 12.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   refundPendingStatusBadge: {
     backgroundColor: 'rgba(245, 158, 11, 0.2)',
@@ -2534,24 +2618,28 @@ const styles = StyleSheet.create({
   },
   refundPendingStatusText: {
     fontSize: 10.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     color: '#d97706',
   },
   refundPendingDesc: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 3,
     lineHeight: 16,
   },
   refundPendingDestText: {
     fontSize: 12,
+    fontFamily: 'Outfit_500Medium',
   },
   refundPendingSubText: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginLeft: 18,
     marginTop: 1,
   },
   refundPendingEta: {
     fontSize: 10.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 6,
     lineHeight: 14,
   },

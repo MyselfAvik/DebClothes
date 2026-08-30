@@ -1087,7 +1087,7 @@ export default function CheckoutScreen() {
               <Text
                 style={{
                   marginTop: 12,
-                  fontWeight: '700',
+                  fontFamily: 'Outfit_700Bold',
                   color: isDark ? '#fff' : '#000',
                 }}
               >
@@ -1126,7 +1126,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 0.5,
   },
   assuredBadge: {
@@ -1137,7 +1137,7 @@ const styles = StyleSheet.create({
   assuredText: {
     fontSize: 11,
     color: '#ec4899',
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 4,
   },
   scrollContent: {
@@ -1171,11 +1171,11 @@ const styles = StyleSheet.create({
   stepBadgeText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     flex: 1,
   },
   changeAddressBtn: {
@@ -1186,7 +1186,7 @@ const styles = StyleSheet.create({
   },
   changeAddressText: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   activeAddressBox: {
     borderRadius: 14,
@@ -1206,7 +1206,7 @@ const styles = StyleSheet.create({
   },
   activeAddressTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginLeft: 6,
   },
   selectedCheck: {
@@ -1218,11 +1218,12 @@ const styles = StyleSheet.create({
   },
   activeAddressLine: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     lineHeight: 20,
   },
   activeAddressCity: {
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   phoneRow: {
@@ -1233,7 +1234,7 @@ const styles = StyleSheet.create({
   phoneText: {
     fontSize: 12,
     marginLeft: 6,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   speedCheckBtn: {
     flexDirection: 'row',
@@ -1244,12 +1245,13 @@ const styles = StyleSheet.create({
   },
   speedCheckText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 6,
   },
   noAddressNotice: {
     fontSize: 13,
     marginBottom: 12,
+    fontFamily: 'Outfit_500Medium',
     fontStyle: 'italic',
   },
   autoDetectBtnWrapper: {
@@ -1267,7 +1269,7 @@ const styles = StyleSheet.create({
   autoDetectText: {
     color: '#fff',
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 0.3,
   },
   manualToggleBtn: {
@@ -1281,7 +1283,7 @@ const styles = StyleSheet.create({
   },
   manualToggleText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   manualFormBox: {
     borderRadius: 14,
@@ -1297,7 +1299,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   formInput: {
     borderWidth: 1,
@@ -1305,6 +1307,7 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     marginBottom: 10,
   },
   formRow: {
@@ -1319,6 +1322,7 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
   },
   saveAddressGradient: {
     height: 44,
@@ -1329,7 +1333,7 @@ const styles = StyleSheet.create({
   saveAddressText: {
     color: '#fff',
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   pincodeResultBox: {
     borderWidth: 1,
@@ -1339,7 +1343,7 @@ const styles = StyleSheet.create({
   },
   pincodeResultText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     lineHeight: 18,
   },
   paymentCard: {
@@ -1373,10 +1377,11 @@ const styles = StyleSheet.create({
   },
   paymentTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   paymentDesc: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
     lineHeight: 16,
   },
@@ -1388,10 +1393,11 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
   },
   priceValue: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   freeBadge: {
     backgroundColor: '#10b98120',
@@ -1402,7 +1408,7 @@ const styles = StyleSheet.create({
   freeBadgeText: {
     color: '#10b981',
     fontSize: 11,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   priceDivider: {
     borderBottomWidth: 1,
@@ -1416,15 +1422,16 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 15,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   totalSub: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   totalAmount: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   footer: {
     position: 'absolute',
@@ -1448,11 +1455,11 @@ const styles = StyleSheet.create({
   },
   footerPriceLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   footerPriceValue: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   placeOrderBtnWrapper: {
     borderRadius: 14,
@@ -1469,7 +1476,7 @@ const styles = StyleSheet.create({
   placeOrderBtnText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 0.5,
   },
   modalOverlay: {
@@ -1491,7 +1498,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 17,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   modalAddressItem: {
     borderRadius: 14,
@@ -1506,18 +1513,19 @@ const styles = StyleSheet.create({
   },
   modalAddressLabel: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginLeft: 6,
     flex: 1,
   },
   modalAddressText: {
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     lineHeight: 18,
   },
   modalAddressPhone: {
     fontSize: 12,
+    fontFamily: 'Outfit_600SemiBold',
     marginTop: 4,
-    fontWeight: '600',
   },
   modalAddNewBtn: {
     paddingVertical: 14,
@@ -1525,7 +1533,7 @@ const styles = StyleSheet.create({
   },
   modalAddNewText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   webviewHeader: {
     flexDirection: 'row',
@@ -1536,7 +1544,7 @@ const styles = StyleSheet.create({
   },
   webviewTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   webviewCloseBtn: {
     padding: 4,

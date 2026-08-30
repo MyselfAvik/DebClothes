@@ -58,11 +58,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = async (mockToken) => {
+  const loginWithGoogle = async (token, redirectUri) => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await API.post('/api/auth/google', { token: mockToken });
+      const { data } = await API.post('/api/auth/google', { token, redirectUri });
       setUser(data);
       await AsyncStorage.setItem('userInfo', JSON.stringify(data));
       setLoading(false);

@@ -196,7 +196,7 @@ export default function ProductDetailScreen() {
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Text style={[styles.errorText, { color: colors.danger }]}>{error || 'Product not found'}</Text>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.primary }]} onPress={goBack}>
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Go Back</Text>
+          <Text style={{ color: '#fff', fontFamily: 'Outfit_700Bold' }}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
   },
   addReviewTitle: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginBottom: 10,
   },
   ratingInputRow: {
@@ -666,6 +666,7 @@ const styles = StyleSheet.create({
   },
   ratingLabel: {
     fontSize: 14,
+    fontFamily: 'Outfit_500Medium',
     marginRight: 6,
   },
   commentInput: {
@@ -673,6 +674,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
     textAlignVertical: 'top',
     height: 80,
     marginBottom: 12,
@@ -686,7 +688,7 @@ const styles = StyleSheet.create({
   submitReviewText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   purchaseFooter: {
     position: 'absolute',
@@ -712,7 +714,7 @@ const styles = StyleSheet.create({
   },
   addToBagBtnTextDual: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   buyNowBtnDual: {
     flex: 1,
@@ -729,7 +731,7 @@ const styles = StyleSheet.create({
   buyNowBtnTextDual: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   mainImageContainer: {
     width: width,
@@ -802,7 +804,7 @@ const styles = StyleSheet.create({
   addToCartText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   backBtn: {
     paddingHorizontal: 20,
@@ -811,7 +813,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   errorText: {
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
     marginBottom: 10,
   },
   backBtnWrapper: {

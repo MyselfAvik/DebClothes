@@ -614,15 +614,61 @@ export const googleLogin = async (req, res, next) => {
               email = data.email;
               name = data.name || data.given_name || 'Google User';
               email_verified = data.email_verified !== undefined ? data.email_verified : true;
+              verifiedViaIdToken = true;
             }
-          } else {
-            res.status(401);
-            throw new Error('Invalid Google credential token or verification failed');
           }
         } catch (fetchErr) {
-          console.error('Google token verification failed:', fetchErr);
-          res.status(401);
-          throw new Error('Invalid Google credential token or verification failed');
+          // Continue to auth code exchange fallback
+        }
+      }
+
+      // If still not verified, check if token is an authorization code
+      if (!verifiedViaIdToken && (token.startsWith('4/') || (!token.includes('.') && token.length > 20))) {
+        try {
+          const params = new URLSearchParams();
+          params.append('code', token);
+          params.append('client_id', googleClientId);
+          if (process.env.GOOGLE_CLIENT_SECRET) {
+            params.append('client_secret', process.env.GOOGLE_CLIENT_SECRET);
+          }
+          params.append('redirect_uri', req.body.redirectUri || 'https://auth.expo.io/@avikdangar/mobile');
+          params.append('grant_type', 'authorization_code');
+
+          const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString(),
+          });
+
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            if (tokenData.id_token) {
+              const ticket = await client.verifyIdToken({
+                idToken: tokenData.id_token,
+                audience: [googleClientId].filter(Boolean),
+              });
+              const payload = ticket.getPayload();
+              if (payload && payload.email) {
+                email = payload.email;
+                name = payload.name;
+                email_verified = payload.email_verified;
+                verifiedViaIdToken = true;
+              }
+            } else if (tokenData.access_token) {
+              const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenData.access_token}` },
+              });
+              if (userRes.ok) {
+                const userData = await userRes.json();
+                email = userData.email;
+                name = userData.name || userData.given_name || 'Google User';
+                email_verified = userData.email_verified !== undefined ? userData.email_verified : true;
+                verifiedViaIdToken = true;
+              }
+            }
+          }
+        } catch (codeErr) {
+          console.error('Backend code exchange error:', codeErr);
         }
       }
     }

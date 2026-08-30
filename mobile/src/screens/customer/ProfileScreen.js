@@ -379,7 +379,7 @@ export default function ProfileScreen() {
           >
             <View style={styles.settingLeft}>
               <Shield size={20} color={colors.success} />
-              <Text style={[styles.settingLabel, { color: colors.success, fontWeight: '750' }]}>Admin Control Panel</Text>
+              <Text style={[styles.settingLabel, { color: colors.success, fontFamily: 'Outfit_700Bold' }]}>Admin Control Panel</Text>
             </View>
             <Text style={[styles.settingValue, { color: colors.success }]}>Open</Text>
           </TouchableOpacity>
@@ -492,7 +492,7 @@ export default function ProfileScreen() {
                 ) : (
                   <>
                     <Navigation size={15} color="#fff" style={{ marginRight: 6 }} />
-                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: '800' }}>
+                    <Text style={{ color: '#fff', fontSize: 12, fontFamily: 'Outfit_800ExtraBold' }}>
                       📍 Auto-Detect Location (GPS)
                     </Text>
                   </>
@@ -771,7 +771,7 @@ export default function ProfileScreen() {
                   <View style={[styles.otpInfoBox, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
                     <Mail size={16} color={colors.primary} style={{ marginRight: 8, marginTop: 2 }} />
                     <Text style={[styles.otpInfoText, { color: colors.text }]}>
-                      We will send a 6-digit verification code to your registered email: <Text style={{ fontWeight: '800' }}>{user?.email}</Text>
+                      We will send a 6-digit verification code to your registered email: <Text style={{ fontFamily: 'Outfit_800ExtraBold' }}>{user?.email}</Text>
                     </Text>
                   </View>
 
@@ -792,7 +792,7 @@ export default function ProfileScreen() {
                       {/* OTP Code Field */}
                       <Text style={[styles.fieldLabel, { color: colors.text, marginTop: 14 }]}>Enter 6-Digit OTP Code</Text>
                       <TextInput
-                        style={[styles.input, { color: colors.text, borderColor: colors.border, letterSpacing: 4, fontWeight: '800', textAlign: 'center', fontSize: 18 }]}
+                        style={[styles.input, { color: colors.text, borderColor: colors.border, letterSpacing: 4, fontFamily: 'Outfit_800ExtraBold', textAlign: 'center', fontSize: 18 }]}
                         placeholder="••••••"
                         placeholderTextColor={colors.textSecondary}
                         keyboardType="number-pad"
@@ -1053,10 +1053,11 @@ const styles = StyleSheet.create({
   },
   addressLine: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   addressSub: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   phoneRow: {
@@ -1066,6 +1067,7 @@ const styles = StyleSheet.create({
   },
   phoneVal: {
     fontSize: 12,
+    fontFamily: 'Outfit_500Medium',
     marginLeft: 4,
   },
   addressActions: {
@@ -1083,6 +1085,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
     fontStyle: 'italic',
     paddingVertical: 10,
   },
@@ -1100,7 +1103,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   input: {
     borderWidth: 1,
@@ -1108,6 +1111,7 @@ const styles = StyleSheet.create({
     height: 42,
     paddingHorizontal: 12,
     fontSize: 13.5,
+    fontFamily: 'Outfit_500Medium',
     marginBottom: 10,
   },
   saveBtn: {
@@ -1120,7 +1124,7 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: '#fff',
     fontSize: 13.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   modalOverlay: {
     flex: 1,
@@ -1149,7 +1153,7 @@ const styles = StyleSheet.create({
   },
   modalTitleText: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   modeTabContainer: {
     flexDirection: 'row',
@@ -1174,14 +1178,14 @@ const styles = StyleSheet.create({
   },
   modeTabBtnText: {
     fontSize: 12.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
   },
   formBody: {
     paddingHorizontal: 2,
   },
   fieldLabel: {
     fontSize: 12.5,
-    fontWeight: '750',
+    fontFamily: 'Outfit_700Bold',
     marginBottom: 6,
   },
   passwordInputWrapper: {
@@ -1195,6 +1199,7 @@ const styles = StyleSheet.create({
   passwordTextInput: {
     flex: 1,
     fontSize: 13.5,
+    fontFamily: 'Outfit_500Medium',
     height: '100%',
   },
   eyeBtn: {
@@ -1209,7 +1214,7 @@ const styles = StyleSheet.create({
   primaryActionBtnText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   forgotSwitchBtn: {
     alignSelf: 'center',
@@ -1218,7 +1223,7 @@ const styles = StyleSheet.create({
   },
   forgotSwitchText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     textDecorationLine: 'underline',
   },
   otpInfoBox: {

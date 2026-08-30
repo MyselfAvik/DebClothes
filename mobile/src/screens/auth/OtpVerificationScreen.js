@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginLeft: 6,
   },
   headerContainer: {
@@ -291,13 +291,13 @@ const styles = StyleSheet.create({
   },
   brandTitle: {
     fontSize: 24,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     letterSpacing: 1.5,
     textAlign: 'center',
   },
   brandTagline: {
     fontSize: 12.5,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     marginTop: 4,
     textAlign: 'center',
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   },
   emailText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   card: {
     borderRadius: 24,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 0.8,
     marginBottom: 8,
     marginLeft: 2,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     textAlign: 'center',
   },
   primaryButton: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     letterSpacing: 0.5,
   },
   resendBtn: {
@@ -373,6 +373,6 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
 });

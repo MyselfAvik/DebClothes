@@ -68,7 +68,8 @@
             "./assets/fonts/Outfit_900Black.ttf"
           ]
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "extra": {
       "eas": {

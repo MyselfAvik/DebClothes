@@ -107,41 +107,58 @@ export default function AddEditProduct() {
   };
 
   const handleSelectFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      showToast('Permission to access gallery is required.', 'warning');
-      return;
-    }
+    try {
+      if (Platform.OS === 'ios') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          showToast('Permission to access gallery is required.', 'warning');
+          return;
+        }
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      quality: 0.8,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const selectedUri = result.assets[0].uri;
-      setImagesList((prev) => [...prev, selectedUri]);
-      showToast('Photo selected from gallery!', 'success');
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        if (selectedUri) {
+          setImagesList((prev) => [...prev, selectedUri]);
+          showToast('Photo selected from gallery!', 'success');
+        }
+      }
+    } catch (err) {
+      console.error('Gallery launch error:', err);
+      showToast('Could not open gallery: ' + (err.message || 'Error'), 'error');
     }
   };
 
   const handleTakePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      showToast('Permission to access camera is required.', 'warning');
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        showToast('Permission to access camera is required.', 'warning');
+        return;
+      }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
-      quality: 0.8,
-    });
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const selectedUri = result.assets[0].uri;
-      setImagesList((prev) => [...prev, selectedUri]);
-      showToast('Photo captured successfully!', 'success');
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        if (selectedUri) {
+          setImagesList((prev) => [...prev, selectedUri]);
+          showToast('Photo captured successfully!', 'success');
+        }
+      }
+    } catch (err) {
+      console.error('Camera launch error:', err);
+      showToast('Could not open camera: ' + (err.message || 'Error'), 'error');
     }
   };
 
@@ -442,7 +459,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     marginLeft: 16,
   },
   scrollContent: {
@@ -451,7 +468,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginBottom: 6,
   },
   input: {
@@ -460,6 +477,7 @@ const styles = StyleSheet.create({
     height: 46,
     paddingHorizontal: 12,
     fontSize: 14,
+    fontFamily: 'Outfit_500Medium',
     marginBottom: 16,
   },
   textarea: {
@@ -467,6 +485,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
     height: 100,
     textAlignVertical: 'top',
     marginBottom: 16,
@@ -492,11 +511,11 @@ const styles = StyleSheet.create({
   },
   catTabText: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
   },
   sectionHeading: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginTop: 12,
     marginBottom: 12,
   },
@@ -514,7 +533,7 @@ const styles = StyleSheet.create({
   },
   sizeLabel: {
     fontSize: 13,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit_700Bold',
     width: 30,
   },
   sizeStockInput: {
@@ -524,6 +543,7 @@ const styles = StyleSheet.create({
     height: 36,
     textAlign: 'center',
     fontSize: 13,
+    fontFamily: 'Outfit_600SemiBold',
   },
   pickerActionsRow: {
     flexDirection: 'row',
@@ -541,7 +561,7 @@ const styles = StyleSheet.create({
   },
   pickerBtnText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   imageAddRow: {
     flexDirection: 'row',
@@ -555,6 +575,7 @@ const styles = StyleSheet.create({
     height: 46,
     paddingHorizontal: 12,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
   },
   addImageBtn: {
     width: 46,
@@ -601,6 +622,7 @@ const styles = StyleSheet.create({
   },
   emptyPreviewText: {
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     fontStyle: 'italic',
     marginBottom: 16,
   },
@@ -624,7 +646,7 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   center: {
     flex: 1,

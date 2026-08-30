@@ -425,10 +425,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   headerSub: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   searchContainer: {
@@ -445,6 +446,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     height: '100%',
   },
   tabsWrapper: {
@@ -463,7 +465,7 @@ const styles = StyleSheet.create({
   },
   tabPillText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   listContent: {
     padding: 16,
@@ -487,10 +489,11 @@ const styles = StyleSheet.create({
   },
   orderId: {
     fontSize: 14,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   orderFullId: {
     fontSize: 10,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   statusBadge: {
@@ -500,7 +503,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 10,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   customerCard: {
     borderRadius: 10,
@@ -509,14 +512,16 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   customerEmail: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   customerPhone: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   itemsWrapper: {

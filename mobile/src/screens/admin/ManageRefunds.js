@@ -319,7 +319,7 @@ export default function ManageRefunds() {
                 <View style={styles.payoutDetailRow}>
                   <CreditCard size={14} color={colors.primary} style={{ marginRight: 6 }} />
                   <Text style={[styles.payoutValue, { color: colors.text }]}>
-                    UPI ID: <Text style={{ fontWeight: '900', color: colors.primary }}>{item.returnDetails.upiId}</Text>
+                    UPI ID: <Text style={{ fontFamily: 'Outfit_900Black', color: colors.primary }}>{item.returnDetails.upiId}</Text>
                   </Text>
                 </View>
               ) : item.returnDetails.bankDetails ? (
@@ -357,13 +357,13 @@ export default function ManageRefunds() {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
               <XCircle size={16} color="#ef4444" style={{ marginRight: 6 }} />
               <Text style={styles.cancelledText}>
-                Order Cancelled • Payment: <Text style={{ fontWeight: 'bold' }}>{item.paymentStatus.toUpperCase()}</Text>
+                Order Cancelled • Payment: <Text style={{ fontFamily: 'Outfit_700Bold' }}>{item.paymentStatus.toUpperCase()}</Text>
               </Text>
             </View>
 
             {item.cancellationDetails?.reason ? (
               <Text style={[styles.returnReasonText, { color: colors.text, marginTop: 4, fontStyle: 'normal' }]}>
-                Reason: <Text style={{ fontWeight: '700' }}>{item.cancellationDetails.reason}</Text>
+                Reason: <Text style={{ fontFamily: 'Outfit_700Bold' }}>{item.cancellationDetails.reason}</Text>
               </Text>
             ) : null}
 
@@ -375,7 +375,7 @@ export default function ManageRefunds() {
                   <View style={styles.payoutDetailRow}>
                     <CreditCard size={14} color={colors.primary} style={{ marginRight: 6 }} />
                     <Text style={[styles.payoutValue, { color: colors.text }]}>
-                      UPI ID: <Text style={{ fontWeight: '900', color: colors.primary }}>{item.cancellationDetails.upiId}</Text>
+                      UPI ID: <Text style={{ fontFamily: 'Outfit_900Black', color: colors.primary }}>{item.cancellationDetails.upiId}</Text>
                     </Text>
                   </View>
                 ) : item.cancellationDetails.bankDetails ? (
@@ -550,7 +550,7 @@ export default function ManageRefunds() {
         <View style={styles.center}>
           <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
           <TouchableOpacity style={[styles.retryBtn, { backgroundColor: colors.primary }]} onPress={fetchOrders}>
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Retry</Text>
+            <Text style={{ color: '#fff', fontFamily: 'Outfit_700Bold' }}>Retry</Text>
           </TouchableOpacity>
         </View>
       ) : filteredOrders.length === 0 ? (
@@ -607,7 +607,7 @@ export default function ManageRefunds() {
                   ]}
                   onPress={() => setTargetStatus(st.id)}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: targetStatus === st.id ? '#fff' : colors.text }}>
+                  <Text style={{ fontSize: 12, fontFamily: 'Outfit_700Bold', color: targetStatus === st.id ? '#fff' : colors.text }}>
                     {st.label}
                   </Text>
                 </TouchableOpacity>
@@ -661,12 +661,12 @@ export default function ManageRefunds() {
             <View style={[styles.customerBox, { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.1)' : '#f0fdf4', borderColor: '#22c55e', borderWidth: 1, marginTop: 10 }]}>
               <Text style={[styles.payoutHeader, { color: isDark ? '#4ade80' : '#15803d' }]}>Payout Destination:</Text>
               {refundModalOrder?.cancellationDetails?.refundMethod === 'upi' || refundModalOrder?.returnDetails?.refundMethod === 'upi' ? (
-                <Text style={{ fontSize: 13, fontWeight: '850', color: colors.text, marginTop: 3 }}>
+                <Text style={{ fontSize: 13, fontFamily: 'Outfit_900Black', color: colors.text, marginTop: 3 }}>
                   UPI ID: {refundModalOrder?.cancellationDetails?.upiId || refundModalOrder?.returnDetails?.upiId}
                 </Text>
               ) : (
                 <View style={{ marginTop: 3 }}>
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: colors.text }}>
+                  <Text style={{ fontSize: 12.5, fontFamily: 'Outfit_800ExtraBold', color: colors.text }}>
                     Bank: {refundModalOrder?.cancellationDetails?.bankDetails?.bankName || refundModalOrder?.returnDetails?.bankDetails?.bankName || 'Bank Transfer'}
                   </Text>
                   <Text style={{ fontSize: 11.5, color: colors.textSecondary, marginTop: 1 }}>
@@ -753,10 +753,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   headerSub: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   refreshBtn: {
@@ -776,6 +777,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     height: '100%',
   },
   tabsWrapper: {
@@ -794,7 +796,7 @@ const styles = StyleSheet.create({
   },
   tabPillText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   listContent: {
     padding: 16,
@@ -818,7 +820,7 @@ const styles = StyleSheet.create({
   },
   orderIdText: {
     fontSize: 14,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   dateRow: {
     flexDirection: 'row',
@@ -827,7 +829,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 11.5,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   badgePill: {
     flexDirection: 'row',
@@ -838,7 +840,7 @@ const styles = StyleSheet.create({
   },
   badgePillText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   customerBox: {
     borderRadius: 10,
@@ -852,10 +854,11 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   customerSub: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
   },
   itemsSection: {
     borderTopWidth: 0.5,
@@ -879,15 +882,16 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   itemSub: {
     fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   itemPrice: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   returnDetailsCard: {
     borderRadius: 12,
@@ -902,17 +906,18 @@ const styles = StyleSheet.create({
   },
   returnHeaderTitle: {
     fontSize: 12.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   returnReasonText: {
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     fontStyle: 'italic',
     lineHeight: 18,
     marginBottom: 8,
   },
   proofLabel: {
     fontSize: 11.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   photoThumbWrapper: {
     marginRight: 8,
@@ -933,7 +938,7 @@ const styles = StyleSheet.create({
   },
   payoutHeader: {
     fontSize: 11.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     marginBottom: 6,
   },
   payoutDetailRow: {
@@ -942,10 +947,11 @@ const styles = StyleSheet.create({
   },
   payoutValue: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   payoutSubValue: {
     fontSize: 11.5,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
     paddingLeft: 20,
   },
@@ -957,10 +963,11 @@ const styles = StyleSheet.create({
   },
   adminCommentLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   adminCommentText: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginTop: 2,
   },
   cancelledBox: {
@@ -972,6 +979,7 @@ const styles = StyleSheet.create({
   cancelledText: {
     fontSize: 12,
     color: '#ef4444',
+    fontFamily: 'Outfit_600SemiBold',
     flex: 1,
   },
   actionsGrid: {
@@ -1010,11 +1018,11 @@ const styles = StyleSheet.create({
   actionBtnText: {
     color: '#ffffff',
     fontSize: 12.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   actionBtnOutlineText: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
   center: {
     flex: 1,
@@ -1025,9 +1033,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
   },
   errorText: {
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -1045,10 +1054,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   emptySub: {
     fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
     textAlign: 'center',
     marginTop: 6,
   },
@@ -1071,15 +1081,16 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
   },
   modalSub: {
     fontSize: 12,
+    fontFamily: 'Outfit_400Regular',
     marginBottom: 6,
   },
   inputLabel: {
     fontSize: 12.5,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   statusPill: {
     paddingHorizontal: 12,
@@ -1095,6 +1106,7 @@ const styles = StyleSheet.create({
     height: 72,
     textAlignVertical: 'top',
     fontSize: 13,
+    fontFamily: 'Outfit_500Medium',
     marginVertical: 10,
   },
   modalSubmitBtn: {
@@ -1107,7 +1119,7 @@ const styles = StyleSheet.create({
   modalSubmitBtnText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   photoModalOverlay: {
     flex: 1,

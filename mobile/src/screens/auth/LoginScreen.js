@@ -65,7 +65,7 @@ export default function LoginScreen() {
       const result = await promptGoogleOAuthAsync();
       if (result.success && result.token) {
         showToast('Verifying Google credentials...', 'info');
-        const user = await loginWithGoogle(result.token);
+        const user = await loginWithGoogle(result.token, result.redirectUri);
         showToast(`Welcome, ${user?.name || 'User'}!`, 'success');
         navigateTo('HOME');
       } else if (result.cancelled) {
@@ -208,7 +208,7 @@ export default function LoginScreen() {
                         loginMethod === 'password'
                           ? isDark ? '#ffffff' : '#7c3aed'
                           : isDark ? '#a78bfa' : '#6b7280',
-                      fontWeight: loginMethod === 'password' ? '800' : '600',
+                      fontFamily: loginMethod === 'password' ? 'Outfit_800ExtraBold' : 'Outfit_600SemiBold',
                     },
                   ]}
                 >
@@ -247,7 +247,7 @@ export default function LoginScreen() {
                         loginMethod === 'otp'
                           ? isDark ? '#ffffff' : '#7c3aed'
                           : isDark ? '#a78bfa' : '#6b7280',
-                      fontWeight: loginMethod === 'otp' ? '800' : '600',
+                      fontFamily: loginMethod === 'otp' ? 'Outfit_800ExtraBold' : 'Outfit_600SemiBold',
                     },
                   ]}
                 >
@@ -427,7 +427,7 @@ export default function LoginScreen() {
               <Text
                 style={[
                   styles.linkText,
-                  { color: isDark ? '#c084fc' : '#7c3aed', fontWeight: '800' },
+                  { color: isDark ? '#c084fc' : '#7c3aed', fontFamily: 'Outfit_800ExtraBold' },
                 ]}
               >
                 Create Account

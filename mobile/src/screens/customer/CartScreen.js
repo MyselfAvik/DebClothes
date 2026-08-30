@@ -94,7 +94,7 @@ export default function CartScreen() {
             {prod.title}
           </Text>
           <Text style={[styles.itemDetail, { color: colors.textSecondary }]}>
-            Size: <Text style={{ fontWeight: 'bold', color: colors.text }}>{item.size}</Text>
+            Size: <Text style={{ fontFamily: 'Outfit_700Bold', color: colors.text }}>{item.size}</Text>
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[styles.itemPrice, { color: colors.primary }]}>
@@ -173,13 +173,13 @@ export default function CartScreen() {
             <Text style={[styles.summaryTitle, { color: colors.text }]}>Order Summary</Text>
             
             <View style={styles.summaryRow}>
-              <Text style={{ color: colors.textSecondary }}>Items Subtotal</Text>
-              <Text style={{ color: colors.text, fontWeight: '700' }}>₹{itemsPrice}</Text>
+              <Text style={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular' }}>Items Subtotal</Text>
+              <Text style={{ color: colors.text, fontFamily: 'Outfit_700Bold' }}>₹{itemsPrice}</Text>
             </View>
 
             <View style={styles.summaryRow}>
-              <Text style={{ color: colors.textSecondary }}>Shipping Fee</Text>
-              <Text style={{ color: colors.text, fontWeight: '700' }}>
+              <Text style={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular' }}>Shipping Fee</Text>
+              <Text style={{ color: colors.text, fontFamily: 'Outfit_700Bold' }}>
                 {shippingPrice === 0 ? 'FREE' : `₹${shippingPrice}`}
               </Text>
             </View>
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 24,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     padding: 16,
   },
   listContent: {
@@ -358,12 +358,12 @@ const styles = StyleSheet.create({
   },
   progressSuccessText: {
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
     textAlign: 'center',
   },
   progressInfoText: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   checkoutBtnText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Outfit_800ExtraBold',
   },
   checkoutIcon: {
     marginLeft: 8,
@@ -393,11 +393,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 22,
-    fontWeight: '900',
+    fontFamily: 'Outfit_900Black',
     marginBottom: 8,
   },
   emptySub: {
     fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -410,6 +411,6 @@ const styles = StyleSheet.create({
   shopBtnText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
   },
 });

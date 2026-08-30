@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   toastText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     flex: 1,
     lineHeight: 18,
   },

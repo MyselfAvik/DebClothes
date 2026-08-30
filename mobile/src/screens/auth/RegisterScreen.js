@@ -366,7 +366,7 @@ export default function RegisterScreen() {
               <Text
                 style={[
                   styles.linkText,
-                  { color: isDark ? '#c084fc' : '#7c3aed', fontWeight: '800' },
+                  { color: isDark ? '#c084fc' : '#7c3aed', fontFamily: 'Outfit_800ExtraBold' },
                 ]}
               >
                 Sign In

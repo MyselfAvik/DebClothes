@@ -473,8 +473,8 @@ export default function HomeScreen() {
                     style={[
                       styles.categoryTabText,
                       selectedCategory === cat.id
-                        ? { color: '#fff', fontWeight: 'bold' }
-                        : { color: colors.textSecondary },
+                        ? { color: '#fff', fontFamily: 'Outfit_700Bold' }
+                        : { color: colors.textSecondary, fontFamily: 'Outfit_500Medium' },
                     ]}
                   >
                     {cat.name}
@@ -568,7 +568,7 @@ export default function HomeScreen() {
                 style={[styles.filterBtnApply, { backgroundColor: colors.primary }]}
                 onPress={handleApplyFilters}
               >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Apply</Text>
+                <Text style={{ color: '#fff', fontFamily: 'Outfit_700Bold' }}>Apply</Text>
               </TouchableOpacity>
             </View>
           </View>
